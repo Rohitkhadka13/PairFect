@@ -27,10 +27,12 @@ class AuthController extends GetxController {
 
   final RxList<Map<String, dynamic>> jobs = <Map<String, dynamic>>[].obs;
 
+
   @override
   void onInit() {
     super.onInit();
     initSharedPreferences();
+    getUserInterests();
   }
 
   Future<void> initSharedPreferences() async {
@@ -1160,4 +1162,72 @@ class AuthController extends GetxController {
       throw Exception("Failed to load : $e");
     }
   }
+
+  //save interests
+  Future<void> saveUserInterests(List<String> selectedInterests) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      ParseObject aboutYou;
+      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+        aboutYou = queryResult.results!.first as ParseObject;
+      } else {
+        aboutYou = ParseObject('aboutYou')..set('userPointer', currentUser.toPointer());
+      }
+
+      aboutYou.set('Interests', selectedInterests);
+
+      final response = await aboutYou.save();
+
+      if (!response.success) {
+        throw Exception("Failed to save interests: ${response.error?.message}");
+      }
+      interests.assignAll(selectedInterests);
+
+      Get.snackbar("Success", "Interests saved successfully!");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+  //load interests
+  Future<List<String>> getUserInterests() async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+        final aboutYou = queryResult.results!.first as ParseObject;
+        final fetchedInterests = aboutYou.get<List<dynamic>>('Interests') ?? [];
+        return fetchedInterests.map((e) => e.toString()).toList();
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+    return [];
+  }
+
+  var interests = <String>[].obs;
+  Future<void> loadUserInterests() async {
+    final fetchedInterests = await getUserInterests();
+    interests.assignAll(fetchedInterests);
+  }
+
+
+
 }
+
+

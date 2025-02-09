@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pairfect/profileScreen/aboutYou/occupation_screen.dart';
+import 'package:pairfect/profileScreen/interest_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/drinking_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/exercise_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/have_kids_screen.dart';
@@ -26,7 +27,10 @@ class _CompleteProfileState extends State<CompleteProfile> {
    String _exercise = "";
   final AuthController _authController = Get.find<AuthController>();
 
-  Future<void> _loadSelectedExercise() async {
+
+
+
+   Future<void> _loadSelectedExercise() async {
     try {
       final savedExercise = await _authController.loadExercise();
       setState(() {
@@ -40,6 +44,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
   void initState() {
     _authController.fetchImages();
     _loadSelectedExercise();
+    _authController.loadUserInterests();
     super.initState();
   }
 
@@ -124,26 +129,54 @@ class _CompleteProfileState extends State<CompleteProfile> {
               SizedBox(
                 height: 10,
               ),
-              Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 2),
-                    borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Add interest badges",
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              GestureDetector(
+                onTap: () async {
+                  await Get.to(() => InterestScreen());
+                  await _authController.getUserInterests();
+                },
+                child: Obx(() {
+                  final interests = _authController.interests;
+                  return Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey, width: 2),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.arrow_forward_ios_outlined))
-                  ],
-                ),
+                    constraints: BoxConstraints(
+                      minHeight: 60,
+                      maxHeight: 150, // Prevent overflow
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: interests.isNotEmpty
+                              ? SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Wrap(
+                              spacing: 8.0,
+                              runSpacing: 4.0,
+                              children: interests
+                                  .map((interest) => Chip(label: Text(interest)))
+                                  .toList(),
+                            ),
+                          )
+                              : Text(
+                            "Add interest badges",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios_outlined),
+                      ],
+                    ),
+                  );
+                }),
               ),
+
+
+
+
               SizedBox(
                 height: 15,
               ),

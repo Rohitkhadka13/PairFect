@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:pairfect/authScreen/loading_screen.dart';
 import 'package:pairfect/controllers/auth_controllers.dart';
 import 'package:pairfect/controllers/password_controller.dart';
-import 'package:pairfect/peopleScreen/people_screen.dart';
+
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 void main() async {
