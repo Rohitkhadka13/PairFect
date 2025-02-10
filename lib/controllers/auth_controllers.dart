@@ -1220,13 +1220,75 @@ class AuthController extends GetxController {
     return [];
   }
 
+
   var interests = <String>[].obs;
   Future<void> loadUserInterests() async {
     final fetchedInterests = await getUserInterests();
     interests.assignAll(fetchedInterests);
   }
 
+  //save causes
+  Future<void> saveUserCauses(List<String> selectedCauses) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
 
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      ParseObject aboutYou;
+      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+        aboutYou = queryResult.results!.first as ParseObject;
+      } else {
+        aboutYou = ParseObject('aboutYou')..set('userPointer', currentUser.toPointer());
+      }
+
+      aboutYou.set('Causes', selectedCauses);
+
+      final response = await aboutYou.save();
+
+      if (!response.success) {
+        throw Exception("Failed to save interests: ${response.error?.message}");
+      }
+    causes.assignAll(selectedCauses);
+
+      Get.snackbar("Success", "Interests saved successfully!");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+  //load causes
+  Future<List<String>> getUserCauses() async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+        final aboutYou = queryResult.results!.first as ParseObject;
+        final fetchedCauses = aboutYou.get<List<dynamic>>('Causes') ?? [];
+        return fetchedCauses.map((e) => e.toString()).toList();
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+    return [];
+  }
+
+  var causes = <String>[].obs;
+  Future<void> loadUserCauses() async {
+    final fetchedCauses = await getUserCauses();
+    interests.assignAll(fetchedCauses);
+  }
 
 }
 
