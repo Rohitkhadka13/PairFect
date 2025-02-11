@@ -23,6 +23,7 @@ class AuthController extends GetxController {
   late SharedPreferences prefs;
   final ImagePicker _picker = ImagePicker();
   final RxList<ParseFile?> _images = List<ParseFile?>.filled(6, null).obs;
+
   List<ParseFile?> get images => _images;
 
   final RxList<Map<String, dynamic>> jobs = <Map<String, dynamic>>[].obs;
@@ -81,8 +82,8 @@ class AuthController extends GetxController {
     try {
       // Check if the email already exists
       final QueryBuilder<ParseUser> query =
-          QueryBuilder<ParseUser>(ParseUser.forQuery())
-            ..whereEqualTo('email', email);
+      QueryBuilder<ParseUser>(ParseUser.forQuery())
+        ..whereEqualTo('email', email);
 
       final ParseResponse response = await query.query();
 
@@ -124,12 +125,10 @@ class AuthController extends GetxController {
 
       // Save additional user details in UserLogin table
       ParseObject userObject = ParseObject('UserLogin')
-        ..set('name', name)
-        ..set('dob', dobDateTime)
-        ..set('email', email)
-        ..set('imageProfile', parseImageFile)
-        ..set('isProfileComplete', isProfileComplete)
-        ..set('userPointer', user.toPointer());
+        ..set('name', name)..set('dob', dobDateTime)..set('email', email)..set(
+            'imageProfile', parseImageFile)..set(
+            'isProfileComplete', isProfileComplete)..set(
+            'userPointer', user.toPointer());
 
       final ParseResponse saveResponse = await userObject.save();
 
@@ -161,8 +160,8 @@ class AuthController extends GetxController {
 
         // Fetch the user's data from the UserLogin table
         final QueryBuilder<ParseObject> userLoginQuery =
-            QueryBuilder<ParseObject>(ParseObject('UserLogin'))
-              ..whereEqualTo('userPointer', user.toPointer());
+        QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+          ..whereEqualTo('userPointer', user.toPointer());
 
         final ParseResponse userLoginResponse = await userLoginQuery.query();
 
@@ -350,8 +349,8 @@ class AuthController extends GetxController {
     } else {
       // Create new record
       final userImage = ParseObject('UserImage')
-        ..set('UserPointer', user.toPointer())
-        ..set('Image${index + 1}', parseFile);
+        ..set('UserPointer', user.toPointer())..set(
+            'Image${index + 1}', parseFile);
       await userImage.save();
     }
 
@@ -441,8 +440,7 @@ class AuthController extends GetxController {
         aboutYou = queryResult.results!.first as ParseObject;
       } else {
         aboutYou = ParseObject('aboutYou')
-          ..set('userPointer', currentUser.toPointer())
-          ..set('Work', []);
+          ..set('userPointer', currentUser.toPointer())..set('Work', []);
       }
 
       final currentWork = aboutYou.get<List<dynamic>>('Work') ?? [];
@@ -590,7 +588,6 @@ class AuthController extends GetxController {
     try {
       final user = await ParseUser.currentUser() as ParseUser?;
       if (user != null) {
-
         final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
           ..whereEqualTo('userPointer', user);
 
@@ -623,7 +620,8 @@ class AuthController extends GetxController {
         final response = await userPointer.save();
 
         if (!response.success) {
-          throw Exception("Failed to update profile completion: ${response.error?.message}");
+          throw Exception("Failed to update profile completion: ${response.error
+              ?.message}");
         }
       } else {
         throw Exception("UserPointer not found");
@@ -632,7 +630,6 @@ class AuthController extends GetxController {
       throw Exception("Error setting profile completion: $e");
     }
   }
-
 
 
 //save exercise
@@ -1062,10 +1059,12 @@ class AuthController extends GetxController {
       final queryResult = await query.query();
 
       ParseObject aboutYou;
-      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
         aboutYou = queryResult.results!.first as ParseObject;
       } else {
-        aboutYou = ParseObject('aboutYou')..set('userPointer', currentUser.toPointer());
+        aboutYou = ParseObject('aboutYou')
+          ..set('userPointer', currentUser.toPointer());
       }
 
       aboutYou.set('lookingFor', selectedOptions);
@@ -1093,8 +1092,10 @@ class AuthController extends GetxController {
         ..whereEqualTo('userPointer', currentUser.toPointer());
       final queryResult = await query.query();
 
-      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
-        return (queryResult.results!.first as ParseObject).get<List<dynamic>>('lookingFor')?.cast<String>() ?? [];
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        return (queryResult.results!.first as ParseObject).get<List<dynamic>>(
+            'lookingFor')?.cast<String>() ?? [];
       }
 
       return [];
@@ -1176,10 +1177,12 @@ class AuthController extends GetxController {
       final queryResult = await query.query();
 
       ParseObject aboutYou;
-      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
         aboutYou = queryResult.results!.first as ParseObject;
       } else {
-        aboutYou = ParseObject('aboutYou')..set('userPointer', currentUser.toPointer());
+        aboutYou = ParseObject('aboutYou')
+          ..set('userPointer', currentUser.toPointer());
       }
 
       aboutYou.set('Interests', selectedInterests);
@@ -1209,7 +1212,8 @@ class AuthController extends GetxController {
         ..whereEqualTo('userPointer', currentUser.toPointer());
       final queryResult = await query.query();
 
-      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
         final aboutYou = queryResult.results!.first as ParseObject;
         final fetchedInterests = aboutYou.get<List<dynamic>>('Interests') ?? [];
         return fetchedInterests.map((e) => e.toString()).toList();
@@ -1222,6 +1226,7 @@ class AuthController extends GetxController {
 
 
   var interests = <String>[].obs;
+
   Future<void> loadUserInterests() async {
     final fetchedInterests = await getUserInterests();
     interests.assignAll(fetchedInterests);
@@ -1240,10 +1245,12 @@ class AuthController extends GetxController {
       final queryResult = await query.query();
 
       ParseObject aboutYou;
-      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
         aboutYou = queryResult.results!.first as ParseObject;
       } else {
-        aboutYou = ParseObject('aboutYou')..set('userPointer', currentUser.toPointer());
+        aboutYou = ParseObject('aboutYou')
+          ..set('userPointer', currentUser.toPointer());
       }
 
       aboutYou.set('Causes', selectedCauses);
@@ -1253,7 +1260,7 @@ class AuthController extends GetxController {
       if (!response.success) {
         throw Exception("Failed to save interests: ${response.error?.message}");
       }
-    causes.assignAll(selectedCauses);
+      causes.assignAll(selectedCauses);
 
       Get.snackbar("Success", "Interests saved successfully!");
     } catch (e) {
@@ -1273,7 +1280,8 @@ class AuthController extends GetxController {
         ..whereEqualTo('userPointer', currentUser.toPointer());
       final queryResult = await query.query();
 
-      if (queryResult.success && queryResult.results != null && queryResult.results!.isNotEmpty) {
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
         final aboutYou = queryResult.results!.first as ParseObject;
         final fetchedCauses = aboutYou.get<List<dynamic>>('Causes') ?? [];
         return fetchedCauses.map((e) => e.toString()).toList();
@@ -1285,11 +1293,77 @@ class AuthController extends GetxController {
   }
 
   var causes = <String>[].obs;
+
   Future<void> loadUserCauses() async {
     final fetchedCauses = await getUserCauses();
-    interests.assignAll(fetchedCauses);
+    causes.assignAll(fetchedCauses);
+  }
+
+  //save qualities
+  Future<void> saveUserQualities(List<String> selectedQuality) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      ParseObject aboutYou;
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        aboutYou = queryResult.results!.first as ParseObject;
+      } else {
+        aboutYou = ParseObject('aboutYou')
+          ..set('userPointer', currentUser.toPointer());
+      }
+
+      aboutYou.set('Qualities', selectedQuality);
+
+      final response = await aboutYou.save();
+
+      if (!response.success) {
+        throw Exception("Failed to save interests: ${response.error?.message}");
+      }
+      quality.assignAll(selectedQuality);
+
+      Get.snackbar("Success", "Interests saved successfully!");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+// load qualities
+  Future<List<String>> getUserQualities() async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      if (queryResult.success && queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        final aboutYou = queryResult.results!.first as ParseObject;
+        final fetchedQuality = aboutYou.get<List<dynamic>>('Qualities') ?? [];
+        return fetchedQuality.map((e) => e.toString()).toList();
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+    return [];
+  }
+
+  var quality = <String>[].obs;
+
+  Future<void> loadUserQuality() async {
+    final fetchedQuality = await getUserQualities();
+    quality.assignAll(fetchedQuality);
   }
 
 }
-
-

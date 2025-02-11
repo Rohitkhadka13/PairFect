@@ -13,6 +13,7 @@ import 'package:pairfect/profileScreen/moreAboutYou/politics_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/religion_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/smoking_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/zodiac_screen.dart';
+import 'package:pairfect/profileScreen/qualities_screen.dart';
 import 'package:pairfect/widgets/custom_listtile.dart';
 
 import '../controllers/auth_controllers.dart';
@@ -47,6 +48,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
     _loadSelectedExercise();
     _authController.loadUserInterests();
     _authController.loadUserCauses();
+    _authController.loadUserQuality();
     super.initState();
   }
 
@@ -233,7 +235,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                             ),
                           )
                               : Text(
-                            "Add interest badges",
+                            "Add Causes and  communities",
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -262,25 +264,49 @@ class _CompleteProfileState extends State<CompleteProfile> {
               SizedBox(
                 height: 10,
               ),
-              Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 2),
-                    borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "",
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              GestureDetector(
+                onTap: () async {
+                  await Get.to(() => QualitiesScreen());
+                  await _authController.getUserQualities();
+                },
+                child: Obx(() {
+                  final quality = _authController.quality;
+                  return Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey, width: 2),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.arrow_forward_ios_outlined))
-                  ],
-                ),
+                    constraints: BoxConstraints(
+                      minHeight: 60,
+                      maxHeight: 150,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: quality.isNotEmpty
+                              ? SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Wrap(
+                              spacing: 8.0,
+                              runSpacing: 4.0,
+                              children: quality
+                                  .map((quality) => Chip(label: Text(quality)))
+                                  .toList(),
+                            ),
+                          )
+                              : Text(
+                            "Add their qualities",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios_outlined),
+                      ],
+                    ),
+                  );
+                }),
               ),
 
               //Bio
