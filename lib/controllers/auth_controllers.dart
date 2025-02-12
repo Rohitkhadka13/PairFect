@@ -1366,4 +1366,68 @@ class AuthController extends GetxController {
     quality.assignAll(fetchedQuality);
   }
 
+  //save user bio
+  Future<void> updateUserBio(String bio) async {
+    try {
+      final ParseUser? currentUser = await ParseUser.currentUser();
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+
+      final QueryBuilder<ParseObject> query =
+      QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final ParseResponse response = await query.query();
+
+      ParseObject aboutYouObject;
+      if (response.success &&
+          response.results != null &&
+          response.results!.isNotEmpty) {
+
+        aboutYouObject = response.results!.first as ParseObject;
+      } else {
+
+        aboutYouObject = ParseObject('aboutYou');
+        aboutYouObject.set('userPointer', currentUser.toPointer());
+      }
+
+
+      aboutYouObject.set<String>('Bio', bio);
+
+      final ParseResponse saveResponse = await aboutYouObject.save();
+      if (saveResponse.success) {
+        print("Bio updated successfully.");
+      } else {
+        print("Error updating bio: ${saveResponse.error?.message}");
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Exception updating bio: $e");
+    }
+  }
+
+  //get user bio
+  Future<String> getUserBio() async {
+    try {
+      final ParseUser? currentUser = await ParseUser.currentUser();
+      if (currentUser == null) return '';
+
+      final QueryBuilder<ParseObject> query =
+      QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final ParseResponse response = await query.query();
+
+      if (response.success &&
+          response.results != null &&
+          response.results!.isNotEmpty) {
+        final aboutYou = response.results!.first as ParseObject;
+        return aboutYou.get<String>('Bio') ?? '';
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Exception getting bio: $e");
+    }
+    return '';
+  }
+
+
 }

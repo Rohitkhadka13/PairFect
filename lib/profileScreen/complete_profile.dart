@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pairfect/profileScreen/aboutYou/occupation_screen.dart';
@@ -27,6 +29,8 @@ class CompleteProfile extends StatefulWidget {
 
 class _CompleteProfileState extends State<CompleteProfile> {
    String _exercise = "";
+   final TextEditingController _bioController = TextEditingController();
+   Timer? _debounce;
   final AuthController _authController = Get.find<AuthController>();
 
 
@@ -42,6 +46,12 @@ class _CompleteProfileState extends State<CompleteProfile> {
       Get.snackbar("Error", "Failed to load exercise data: $e");
     }
   }
+
+   Future<void> _loadCurrentBio() async {
+     final currentBio = await _authController.getUserBio();
+     _bioController.text = currentBio;
+   }
+
   @override
   void initState() {
     _authController.fetchImages();
@@ -49,8 +59,10 @@ class _CompleteProfileState extends State<CompleteProfile> {
     _authController.loadUserInterests();
     _authController.loadUserCauses();
     _authController.loadUserQuality();
+    _loadCurrentBio();
     super.initState();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -333,6 +345,14 @@ class _CompleteProfileState extends State<CompleteProfile> {
                       border: Border.all(color: Colors.grey, width: 2),
                       borderRadius: BorderRadius.circular(12)),
                   child: TextField(
+                    controller: _bioController,
+                   maxLines: null,
+                   keyboardType: TextInputType.multiline
+                    ,
+                   onSubmitted: (value){
+                     _authController.updateUserBio(value);
+                     setState(() {});
+                   },
                     decoration: InputDecoration(
                         hintText: "A little bit about you",
                         border: InputBorder.none),
