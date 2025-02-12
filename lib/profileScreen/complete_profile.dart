@@ -28,54 +28,95 @@ class CompleteProfile extends StatefulWidget {
 }
 
 class _CompleteProfileState extends State<CompleteProfile> {
-   String _exercise = "";
-   final TextEditingController _bioController = TextEditingController();
-   Timer? _debounce;
+  bool _isLoading = true;
+  final TextEditingController _bioController = TextEditingController();
+
   final AuthController _authController = Get.find<AuthController>();
+  late final Map<String, Future<String> Function()> _loaders;
 
+  final Map<String, String> _userData = {
+    "height":"Add",
+    "exercise": "Add",
+    "drinking": "Add",
+    "smoking": "Add",
+    "lookingFor": "Add",
+    "kids": "Add",
+    "haveKids": "Add",
+    "zodiac": "Add",
+    "politics": "Add",
+    "religion": "Add",
+  };
 
-
-
-   Future<void> _loadSelectedExercise() async {
-    try {
-      final savedExercise = await _authController.loadExercise();
-      setState(() {
-        _exercise = savedExercise;
-      });
-    } catch (e) {
-      Get.snackbar("Error", "Failed to load exercise data: $e");
+  Future<void> _loadUserData() async {
+    for (var key in _loaders.keys) {
+      try {
+        final value = await _loaders[key]!();
+        setState(() {
+          _userData[key] = value.isNotEmpty ? value : "Add";
+        });
+      } catch (e) {
+        Get.snackbar("Error", "Failed to load $key data: $e");
+      }finally{
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-   Future<void> _loadCurrentBio() async {
-     final currentBio = await _authController.getUserBio();
-     _bioController.text = currentBio;
-   }
+  Future<void> _loadCurrentBio() async {
+    final currentBio = await _authController.getUserBio();
+    _bioController.text = currentBio;
+  }
 
   @override
   void initState() {
     _authController.fetchImages();
-    _loadSelectedExercise();
+
     _authController.loadUserInterests();
     _authController.loadUserCauses();
     _authController.loadUserQuality();
     _loadCurrentBio();
+    _loaders = {
+      "height": () async => await _authController.fetchHeight() ?? "Add",
+      "exercise": () => _authController.loadExercise(),
+      "drinking": () => _authController.loadDrinkingHabits(),
+      "smoking": () => _authController.loadSmokingHabits(),
+      "lookingFor": () async {
+        List<String> lookingFor = await _authController.loadLookingFor();
+        return lookingFor.isNotEmpty ? lookingFor.join(", ") : "Add";
+      },
+      "kids": () => _authController.loadPlanForKids(),
+      "haveKids": () => _authController.loadHaveKids(),
+      "zodiac": () => _authController.loadZodiac(),
+      "politics": () => _authController.loadPoliticalLeaning(),
+      "religion": () => _authController.loadReligion(),
+    };
+
+    _loadUserData();
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.chevron_left_rounded,
-              size: 40,
-            )),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(
+            Icons.chevron_left_rounded,
+            size: 40,
+          ),
+        ),
         backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
@@ -89,23 +130,18 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 "Upload Photos",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(
-                height: 5,
-              ),
+              SizedBox(height: 5),
               Text(
                 "Pick some that show the true you.",
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.normal),
+                style: TextStyle(fontSize: 19),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              SizedBox(height: 10),
 
               Obx(() {
                 return Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildImageContainer(0),
                         _buildImageContainer(1),
@@ -115,7 +151,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
                     SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildImageContainer(3),
                         _buildImageContainer(4),
@@ -126,25 +161,17 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 );
               }),
 
-              //// Interests
-
-              SizedBox(
-                height: 15,
-              ),
+              SizedBox(height: 15),
               Text(
                 "Interests",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(
-                height: 5,
-              ),
+              SizedBox(height: 5),
               Text(
                 "Get specific about the things you love.",
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.normal),
+                style: TextStyle(fontSize: 19),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              SizedBox(height: 10),
               GestureDetector(
                 onTap: () async {
                   await Get.to(() => InterestScreen());
@@ -158,23 +185,19 @@ class _CompleteProfileState extends State<CompleteProfile> {
                       border: Border.all(color: Colors.grey, width: 2),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    constraints: BoxConstraints(
-                      minHeight: 60,
-                      maxHeight: 150, // Prevent overflow
-                    ),
+                    constraints: BoxConstraints(minHeight: 60, maxHeight: 150),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
                           child: interests.isNotEmpty
                               ? SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
                             child: Wrap(
                               spacing: 8.0,
                               runSpacing: 4.0,
                               children: interests
-                                  .map((interest) => Chip(label: Text(interest)))
+                                  .map((interest) =>
+                                  Chip(label: Text(interest)))
                                   .toList(),
                             ),
                           )
@@ -189,9 +212,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
                   );
                 }),
               ),
-
-
-
 
               SizedBox(
                 height: 15,
@@ -321,42 +341,38 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 }),
               ),
 
-              //Bio
-              SizedBox(
-                height: 15,
-              ),
+              SizedBox(height: 15),
               Text(
                 "Bio",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(
-                height: 5,
-              ),
+              SizedBox(height: 5),
               Text(
                 "Write a fun and punchy intro.",
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.normal),
+                style: TextStyle(fontSize: 19),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              SizedBox(height: 10),
               Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 2),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: TextField(
-                    controller: _bioController,
-                   maxLines: null,
-                   keyboardType: TextInputType.multiline
-                    ,
-                   onSubmitted: (value){
-                     _authController.updateUserBio(value);
-                     setState(() {});
-                   },
-                    decoration: InputDecoration(
-                        hintText: "A little bit about you",
-                        border: InputBorder.none),
-                  )),
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: TextField(
+                  controller: _bioController,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (value) {
+                    _authController.updateUserBio(value);
+                    setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    hintText: "A little bit about you",
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
 
               // About You Section
               SizedBox(
@@ -406,127 +422,106 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 trailing: "Add",
               ),
 
-              //More About You
-              SizedBox(
-                height: 25,
-              ),
+              SizedBox(height: 25),
               Text(
                 "More About you",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(
-                height: 5,
-              ),
+              SizedBox(height: 5),
               Text(
                 "Cover things most people are curious about.",
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.normal),
+                style: TextStyle(fontSize: 19),
               ),
-              SizedBox(
-                height: 25,
-              ),
+              SizedBox(height: 25),
 
-              //Add Height
               CustomListTile(
                 onPressed: () {
                   Get.to(() => HeightScreen());
                 },
                 leading: Icons.height,
                 title: "Height",
-                trailing: "Add",
+                trailing: _userData['height'],
               ),
-
-              //Add Exercise
               CustomListTile(
                 onPressed: () {
                   Get.to(() => ExerciseScreen());
                 },
                 leading: Icons.fitness_center_outlined,
                 title: "Exercise",
-                trailing: _exercise ?? "Add",
+                trailing: _userData["exercise"],
               ),
-
-              //Add Drinking Habits
               CustomListTile(
                 onPressed: () {
                   Get.to(() => DrinkingScreen());
                 },
                 leading: Icons.local_bar,
                 title: "Drinking",
-                trailing: "Add",
+                trailing: _userData["drinking"],
               ),
-
-              //Add Smoking habits
               CustomListTile(
                 onPressed: () {
                   Get.to(() => SmokingScreen());
                 },
                 leading: Icons.smoking_rooms_rounded,
                 title: "Smoking",
-                trailing: "Add",
+                trailing: _userData["smoking"],
               ),
-
-              //Add Looking for in partner
               CustomListTile(
                 onPressed: () {
                   Get.to(() => LookingForScreen());
                 },
                 leading: Icons.search_outlined,
                 title: "Looking for",
-                trailing: "Add",
+                trailing: _userData["lookingFor"],
               ),
-
-              //Add Kids
               CustomListTile(
                 onPressed: () {
                   Get.to(() => KidsScreen());
                 },
                 leading: Icons.escalator_warning_outlined,
                 title: "Kids",
-                trailing: "Add",
+                trailing: _userData["kids"],
               ),
-
-              //Add Want Kids
               CustomListTile(
                 onPressed: () {
                   Get.to(() => HaveKidsScreen());
                 },
                 leading: Icons.child_care,
                 title: "Have kids",
-                trailing: "Add",
+                trailing: _userData["haveKids"],
               ),
-
-              //Add Star Sign
               CustomListTile(
                 onPressed: () {
                   Get.to(() => ZodiacScreen());
                 },
                 leading: Icons.star,
                 title: "Zodiac",
-                trailing: "Add",
+                trailing: _userData["zodiac"],
               ),
-
-              //Add Politics
               CustomListTile(
-                onPressed: (){Get.to(()=> PoliticsScreen());},
+                onPressed: () {
+                  Get.to(() => PoliticsScreen());
+                },
                 leading: Icons.account_balance,
                 title: "Politics",
-                trailing: "Add",
+                trailing: _userData["politics"],
               ),
-
-              //Add Religion
               CustomListTile(
-                onPressed: (){Get.to(()=> ReligionScreen());},
+                onPressed: () {
+                  Get.to(() => ReligionScreen());
+                },
                 leading: Icons.church_outlined,
                 title: "Religion",
-                trailing: "Add",
+                trailing: _userData["religion"],
               ),
             ],
           ),
         ),
       ),
     );
-  }
 
+
+  }
   Widget _buildImageContainer(int index) {
     return GestureDetector(
       onTap: () async {

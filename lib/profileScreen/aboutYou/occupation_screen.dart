@@ -18,7 +18,9 @@ class OccupationScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         title: const Text("Occupation"),
         leading: IconButton(
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
           icon: const Icon(Icons.arrow_back_ios),
         ),
       ),

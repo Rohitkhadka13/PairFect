@@ -23,8 +23,9 @@ class _AddjobScreenState extends State<AddjobScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text("Add job"),
-        leading: IconButton(onPressed: (){
-          Get.back();
+        leading: IconButton( onPressed: () {
+    Navigator.pop(context);
+
         }, icon: Icon(Icons.arrow_back_ios)),
         actions: [
           IconButton(onPressed: (){
