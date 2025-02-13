@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pairfect/profileScreen/aboutYou/gender_screen.dart';
 import 'package:pairfect/profileScreen/aboutYou/occupation_screen.dart';
 import 'package:pairfect/profileScreen/causes_screen.dart';
 import 'package:pairfect/profileScreen/interest_screen.dart';
@@ -35,6 +36,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
   late final Map<String, Future<String> Function()> _loaders;
 
   final Map<String, String> _userData = {
+    "gender":"Add",
     "height":"Add",
     "exercise": "Add",
     "drinking": "Add",
@@ -78,6 +80,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
     _authController.loadUserQuality();
     _loadCurrentBio();
     _loaders = {
+      "gender": () async => (await _authController.getUserGender())?["gender"] ?? "Add",
       "height": () async => await _authController.fetchHeight() ?? "Add",
       "exercise": () => _authController.loadExercise(),
       "drinking": () => _authController.loadDrinkingHabits(),
@@ -403,9 +406,13 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
               //Add Gender
               CustomListTile(
+                onPressed: (){
+                  Get.to(()=> GenderScreen());
+                },
                 leading: Icons.person,
                 title: "Gender",
-                trailing: "Add",
+                trailing: _userData["gender"],
+
               ),
 
               //Add Location

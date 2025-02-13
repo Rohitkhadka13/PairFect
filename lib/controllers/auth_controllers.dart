@@ -1429,5 +1429,75 @@ class AuthController extends GetxController {
     return '';
   }
 
+  //save user gender and show on Profile
+  Future<void> saveUserAge( String gender, bool showOnProfile) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('Basic'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      ParseObject aboutYou;
+      if (queryResult.success &&
+          queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        aboutYou = queryResult.results!.first as ParseObject;
+      } else {
+        aboutYou = ParseObject('Basic')
+          ..set('userPointer', currentUser.toPointer());
+      }
+
+      aboutYou
+
+        ..set('Gender', gender)
+        ..set('showOnProfile', showOnProfile);
+
+      final response = await aboutYou.save();
+
+      if (!response.success) {
+        throw Exception("Failed to save data: ${response.error?.message}");
+      }
+
+      Get.snackbar("Success", "Profile updated successfully!");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+  //get user gender and show on profile
+  Future<Map<String, dynamic>?> getUserGender() async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('Basic'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      if (queryResult.success &&
+          queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        final aboutYou = queryResult.results!.first as ParseObject;
+        return {
+
+          "gender": aboutYou.get<String>('Gender') ?? "",
+          "showOnProfile": aboutYou.get<bool>('showOnProfile') ?? true,
+        };
+      }
+
+      return null;
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+      return null;
+    }
+  }
+
+
 
 }
