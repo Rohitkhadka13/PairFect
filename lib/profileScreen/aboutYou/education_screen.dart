@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pairfect/profileScreen/aboutYou/add_Education_screen.dart';
+
 import '../../controllers/auth_controllers.dart';
-import 'addJob_screen.dart';
 
-class OccupationScreen extends StatelessWidget {
-  final AuthController _authController = Get.find();
-
-  OccupationScreen({super.key});
+class EducationScreen extends StatefulWidget {
+  const EducationScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    _authController.fetchJob();
+  State<EducationScreen> createState() => _EducationScreenState();
+}
 
+class _EducationScreenState extends State<EducationScreen> {
+  final AuthController _authController = Get.find();
+  @override
+  Widget build(BuildContext context) {
+    _authController.fetchEducation();
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        title: const Text("Occupation"),
+        title: const Text("Education"),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
@@ -30,23 +34,23 @@ class OccupationScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "First job is only shown on profile",
+              "First education is only shown on profile",
               style: TextStyle(fontSize: 24),
             ),
 
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () async {
-                final result = await Get.to(() => const AddjobScreen());
+                final result = await Get.to(() => const AddEducationScreen());
                 if (result == true) {
-                  _authController.fetchJob();
+                  _authController.fetchEducation();
                 }
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
                   Text(
-                    "Add a job",
+                    "Add education",
                     style: TextStyle(fontSize: 20),
                   ),
                   Icon(Icons.arrow_forward_ios_outlined)
@@ -56,14 +60,14 @@ class OccupationScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Expanded(
               child: Obx(() {
-                if (_authController.jobs.isEmpty) {
-                  return const Center(child: Text("No jobs available"));
+                if (_authController.edu.isEmpty) {
+                  return const Center(child: Text("No education available"));
                 }
 
                 return ListView.builder(
-                  itemCount: _authController.jobs.length,
+                  itemCount: _authController.edu.length,
                   itemBuilder: (context, index) {
-                    final job = _authController.jobs[index];
+                    final educ = _authController.edu[index];
                     return Container(
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 10),
@@ -85,13 +89,13 @@ class OccupationScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Title: ${job['title']}",
+                                "Institution: ${educ['institution']}",
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Text("Company: ${job['company']}"),
+                              Text("Year: ${educ['year']}"),
                             ],
                           ),
                           Row(
@@ -100,7 +104,7 @@ class OccupationScreen extends StatelessWidget {
                               IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () async {
-                                  await _authController.deleteUserJob(index);
+                                  await _authController.deleteUserEducation(index);
                                 },
                               ),
                             ],
@@ -115,6 +119,5 @@ class OccupationScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    );  }
 }

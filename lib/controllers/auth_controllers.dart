@@ -27,6 +27,7 @@ class AuthController extends GetxController {
   List<ParseFile?> get images => _images;
 
   final RxList<Map<String, dynamic>> jobs = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> edu = <Map<String, dynamic>>[].obs;
 
 
   @override
@@ -480,7 +481,7 @@ class AuthController extends GetxController {
         final fetchedJobs = aboutYou.get<List<dynamic>>('Work') ?? [];
         jobs.assignAll(fetchedJobs.cast<Map<String, dynamic>>());
       } else {
-        jobs.clear(); // No jobs found
+        jobs.clear();
       }
     } catch (e) {
       Get.snackbar("Error", e.toString());
@@ -523,6 +524,111 @@ class AuthController extends GetxController {
       Get.snackbar("Error", e.toString());
     }
   }
+
+  //add education
+  Future<void> addEducation(String institution, String year) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      ParseObject aboutYou;
+      if (queryResult.success &&
+          queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        aboutYou = queryResult.results!.first as ParseObject;
+      } else {
+        aboutYou = ParseObject('aboutYou')
+          ..set('userPointer', currentUser.toPointer())..set('Education', []);
+      }
+
+      final currentEdu = aboutYou.get<List<dynamic>>('Education') ?? [];
+      currentEdu.add({'institution': institution, 'year': year});
+      aboutYou.set('Education', currentEdu);
+
+      final response = await aboutYou.save();
+      if (!response.success) {
+        throw Exception(
+            "Failed to save education details: ${response.error?.message}");
+      }
+
+      // Update reactive education list
+      edu.assignAll(currentEdu.cast<Map<String, dynamic>>());
+      Get.snackbar("Success", "Education  added successfully!");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+  //fetch education
+  Future<void> fetchEducation() async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      if (queryResult.success &&
+          queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        final aboutYou = queryResult.results!.first as ParseObject;
+        final fetchedEdu = aboutYou.get<List<dynamic>>('Education') ?? [];
+        edu.assignAll(fetchedEdu.cast<Map<String, dynamic>>());
+      } else {
+        edu.clear();
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+  //delete education
+  Future<void> deleteUserEducation(int index) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) {
+        throw Exception("User not logged in");
+      }
+
+      final query = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+      final queryResult = await query.query();
+
+      if (queryResult.success &&
+          queryResult.results != null &&
+          queryResult.results!.isNotEmpty) {
+        final aboutYou = queryResult.results!.first as ParseObject;
+        final cuerrentEdu = aboutYou.get<List<dynamic>>('Education') ?? [];
+
+        if (index >= 0 && index < cuerrentEdu.length) {
+          cuerrentEdu.removeAt(index);
+          aboutYou.set('Education', cuerrentEdu);
+          final response = await aboutYou.save();
+
+          if (!response.success) {
+            throw Exception("Failed to delete education: ${response.error?.message}");
+          }
+
+          // Update reactive jobs list
+          edu.assignAll(cuerrentEdu.cast<Map<String, dynamic>>());
+          Get.snackbar("Success", "Education deleted successfully!");
+        }
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+
 
   //add height
   Future<void> saveHeight(String height) async {

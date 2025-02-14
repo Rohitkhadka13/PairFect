@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pairfect/profileScreen/aboutYou/education_screen.dart';
 import 'package:pairfect/profileScreen/aboutYou/gender_screen.dart';
 import 'package:pairfect/profileScreen/aboutYou/occupation_screen.dart';
 import 'package:pairfect/profileScreen/causes_screen.dart';
@@ -36,6 +37,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
   late final Map<String, Future<String> Function()> _loaders;
 
   final Map<String, String> _userData = {
+    "job":"Add",
+    "education":"Add",
     "gender":"Add",
     "height":"Add",
     "exercise": "Add",
@@ -80,7 +83,18 @@ class _CompleteProfileState extends State<CompleteProfile> {
     _authController.loadUserQuality();
     _loadCurrentBio();
     _loaders = {
-      "gender": () async => (await _authController.getUserGender())?["gender"] ?? "Add",
+      "job": () async {
+        await _authController.fetchJob();
+        return _authController.jobs.isNotEmpty ? _authController.jobs.first["title"] ?? "Add" : "Add";
+      },
+      "education": () async {
+        await _authController.fetchEducation();
+        return _authController.edu.isNotEmpty
+            ? "${_authController.edu.first["institution"]} ${_authController.edu.first["year"]}"
+            : "Add";
+      },
+      "gender": () async =>
+      (await _authController.getUserGender())?["gender"] ?? "Add",
       "height": () async => await _authController.fetchHeight() ?? "Add",
       "exercise": () => _authController.loadExercise(),
       "drinking": () => _authController.loadDrinkingHabits(),
@@ -94,6 +108,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
       "zodiac": () => _authController.loadZodiac(),
       "politics": () => _authController.loadPoliticalLeaning(),
       "religion": () => _authController.loadReligion(),
+
     };
 
     _loadUserData();
@@ -394,14 +409,15 @@ class _CompleteProfileState extends State<CompleteProfile> {
                 onPressed: (){Get.to(()=> OccupationScreen());},
                 leading: Icons.work,
                 title: "Work",
-                trailing: "Add",
+                trailing: _userData["job"],
               ),
 
               //Add Education
               CustomListTile(
+                onPressed: (){Get.to(()=> EducationScreen());},
                 leading: Icons.school,
                 title: "Education",
-                trailing: "Add",
+                trailing: _userData["education"],
               ),
 
               //Add Gender
