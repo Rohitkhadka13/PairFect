@@ -68,6 +68,7 @@ class _AddEducationScreenState extends State<AddEducationScreen> {
             ),
             SizedBox(height: 15,),
             TextField(
+              keyboardType: TextInputType.number,
               controller: _yearController,
               decoration: InputDecoration(
                 hintText:"Graduation Year ",

@@ -41,9 +41,26 @@ class _EducationScreenState extends State<EducationScreen> {
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () async {
-                final result = await Get.to(() => const AddEducationScreen());
-                if (result == true) {
-                  _authController.fetchEducation();
+                if(_authController.edu.length < 5) {
+                  final result = await Get.to(() => const AddEducationScreen());
+                  if (result == true) {
+                    _authController.fetchEducation();
+                  }
+                }
+                else{
+                  AlertDialog alert = AlertDialog(
+                    title: Text("Error!"),
+                    content: Text("You can only add 5 education at once "),
+                    actions: [
+
+                      TextButton(onPressed: (){
+                        Navigator.pop(context);
+                      }, child: Text("Ok"))
+                    ],
+                  );
+                  showDialog(context: context, builder: (BuildContext context){
+                    return alert;
+                  });
                 }
               },
               child: Row(

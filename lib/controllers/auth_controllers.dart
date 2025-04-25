@@ -712,30 +712,33 @@ class AuthController extends GetxController {
 
   //set IsProfileCompleted to true
   Future<void> setProfileCompleted() async {
-    try {
-      final user = await ParseUser.currentUser() as ParseUser?;
-      if (user == null) throw Exception("User not logged in");
+    final user = await ParseUser.currentUser() as ParseUser?;
+    if (user == null) throw Exception("User not logged in");
 
-      // Get the pointer to UserLogin
-      final userPointer = user.get<ParseObject>('userPointer');
-      if (userPointer != null) {
-        // Set the isProfileComplete field in the UserLogin object
-        userPointer.set('isProfileComplete', true);
+    final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+      ..whereEqualTo('userPointer', user);
 
-        // Save the changes to the UserLogin object
-        final response = await userPointer.save();
+    final response = await query.query();
+    if (response.success && response.results != null && response.results!.isNotEmpty) {
+      final userLogin = response.results!.first as ParseObject;
+      final isComplete = userLogin.get<bool>('isProfileComplete');
 
-        if (!response.success) {
-          throw Exception("Failed to update profile completion: ${response.error
-              ?.message}");
+      if (isComplete != true) {
+        userLogin.set('isProfileComplete', true);
+        final saveResponse = await userLogin.save();
+
+        if (!saveResponse.success) {
+          throw Exception("Failed to update: ${saveResponse.error?.message}");
         }
-      } else {
-        throw Exception("UserPointer not found");
       }
-    } catch (e) {
-      throw Exception("Error setting profile completion: $e");
+    } else {
+      throw Exception("UserLogin object not found");
     }
   }
+
+
+
+
 
 
 //save exercise

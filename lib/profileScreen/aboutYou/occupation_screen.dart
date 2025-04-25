@@ -37,9 +37,28 @@ class OccupationScreen extends StatelessWidget {
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () async {
-                final result = await Get.to(() => const AddjobScreen());
-                if (result == true) {
-                  _authController.fetchJob();
+                if(_authController.jobs.length < 5) {
+                  final result = await Get.to(() => const AddjobScreen());
+                  if (result == true) {
+                    _authController.fetchJob();
+                  }
+                }else{
+
+                  AlertDialog alert = AlertDialog(
+                    title: Text("Error!"),
+                    content: Text("You can only add 5 jobs at once "),
+                    actions: [
+
+                      TextButton(onPressed: (){
+                        Navigator.pop(context);
+                      }, child: Text("Ok"))
+                    ],
+                  );
+                  showDialog(context: context, builder: (BuildContext context){
+                    return alert;
+                  });
+  
+
                 }
               },
               child: Row(

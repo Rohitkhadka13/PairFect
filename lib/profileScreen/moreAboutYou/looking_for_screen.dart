@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pairfect/profileScreen/complete_profile.dart';
+import 'package:pairfect/profileScreen/profile_screen.dart';
 
 import '../../controllers/auth_controllers.dart';
 
@@ -60,7 +61,8 @@ class _LookingForScreenState extends State<LookingForScreen> {
       }
     }
     await authController.saveLookingFor(selectedOptions);
-    Get.offAll(()=> CompleteProfile());
+
+    Get.offAll(()=> ProfileScreen());
 
   }
 
