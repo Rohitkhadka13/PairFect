@@ -46,6 +46,7 @@ dependencies:
   tcard: ^1.3.5
   flutter_tindercard_2:
   flutter_dotenv:
+  shimmer:
 
 
 

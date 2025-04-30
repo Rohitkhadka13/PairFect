@@ -156,7 +156,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(height: 20,),
             GestureDetector(
                 onTap: () async{
+                  authController.clearImages();
 await authController.logout();
+
                 },
                 child: Text("Logout"))
           ],

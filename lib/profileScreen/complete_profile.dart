@@ -17,6 +17,7 @@ import 'package:pairfect/profileScreen/moreAboutYou/politics_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/religion_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/smoking_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/zodiac_screen.dart';
+import 'package:pairfect/profileScreen/profile_screen.dart';
 import 'package:pairfect/profileScreen/qualities_screen.dart';
 import 'package:pairfect/widgets/custom_listtile.dart';
 
@@ -128,7 +129,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context);
+            Get.offAll(ProfileScreen());
           },
           icon: Icon(
             Icons.chevron_left_rounded,

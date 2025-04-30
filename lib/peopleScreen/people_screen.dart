@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tindercard_2/flutter_tindercard_2.dart';
+import 'package:get/get.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+import 'package:shimmer/shimmer.dart';
+
+import '../controllers/auth_controllers.dart';
 
 class PeopleScreen extends StatefulWidget {
   const PeopleScreen({super.key});
@@ -9,35 +14,81 @@ class PeopleScreen extends StatefulWidget {
 }
 
 class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMixin {
-  List<Map<String, dynamic>> profiles = [
-    {
-      "name": "Alice",
-      "age": 24,
-      "image": "https://t4.ftcdn.net/jpg/03/83/25/83/360_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg",
-    },
-    {
-      "name": "Bob",
-      "age": 27,
-      "image": "https://thumbs.dreamstime.com/b/excited-african-american-man-pointing-finger-background-template-text-stock-photo-149317403.jpg",
-    },
-    {
-      "name": "Charlie",
-      "age": 22,
-      "image": "https://t4.ftcdn.net/jpg/03/83/25/83/360_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg",
-    },
-    {
-      "name": "Diana",
-      "age": 25,
-      "image": "https://thumbs.dreamstime.com/b/excited-african-american-man-pointing-finger-background-template-text-stock-photo-149317403.jpg",
-    },
-    {
-      "name": "Ethan",
-      "age": 30,
-      "image": "https://t4.ftcdn.net/jpg/03/83/25/83/360_F_383258331_D8imaEMl8Q3lf7EKU2Pi78Cn0R7KkW9o.jpg",
-    },
-  ];
+  List<Map<String, dynamic>> profiles = [];
+  final AuthController authController = Get.find();
 
   final CardController _controller = CardController();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProfiles();
+  }
+
+  Future<void> fetchProfiles() async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) return;
+
+      final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+        ..whereNotEqualTo('userPointer', currentUser)
+        ..whereEqualTo('isProfileComplete', true);
+
+      final List<ParseObject> results = await query.find();
+
+      final List<Map<String, dynamic>> fetchedProfiles = [];
+
+      for (final object in results) {
+        final userPointer = object.get<ParseUser>('userPointer');
+        final dob = object.get<DateTime>('dob');
+        final imageFile = object.get<ParseFile>('imageProfile');
+
+
+        String? gender;
+        bool showOnProfile = false;
+
+
+        final basicQuery = QueryBuilder<ParseObject>(ParseObject('Basic'))
+          ..whereEqualTo('userPointer', userPointer);
+        final basicResult = await basicQuery.query();
+
+        if (basicResult.success &&
+            basicResult.results != null &&
+            basicResult.results!.isNotEmpty) {
+          final basic = basicResult.results!.first;
+          showOnProfile = basic.get<bool>('showOnProfile') ?? false;
+          if (showOnProfile) {
+            gender = basic.get<String>('Gender');
+          }
+        }
+
+        fetchedProfiles.add({
+          'name': object.get<String>('name') ?? '',
+          'dob': dob,
+          'imageUrl': imageFile?.url ?? '',
+          'gender': gender,
+          'showOnProfile': showOnProfile,
+        });
+      }
+
+      setState(() {
+        profiles = fetchedProfiles;
+      });
+    } catch (e) {
+      debugPrint('Error fetching profiles: $e');
+    }
+  }
+
+
+
+  int calculateAge(DateTime dob) {
+    final today = DateTime.now();
+    int age = today.year - dob.year;
+    if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +99,7 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
         automaticallyImplyLeading: false,
         title: const Text(
           "PairFect",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -70,12 +118,26 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
               minHeight: MediaQuery.of(context).size.height * 0.7,
               cardBuilder: (context, index) {
                 final profile = profiles[index];
+                final name = profile['name'] as String;
+                final imageUrl = profile['imageUrl'] as String?;
+                final dob = profile['dob'] as DateTime?;
+                final age = dob != null ? calculateAge(dob) : null;
+                final gender = profile['gender'] as String?;
+                final showOnProfile = profile['showOnProfile'] as bool?;
+
                 return Stack(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: Image.network(
-                        profile['image'],
+                      child: imageUrl != null
+                          ? Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                          : Image.asset(
+                        'assets/images/default_image.png', // Default image
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
@@ -85,7 +147,7 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                       bottom: 20,
                       left: 20,
                       child: Text(
-                        "${profile['name']}, ${profile['age']}",
+                        "$name, ${age ?? 'N/A'}",
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -100,6 +162,26 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                         ),
                       ),
                     ),
+                    if (showOnProfile ?? false)
+                      Positioned(
+                        bottom: 50,
+                        left: 20,
+                        child: Text(
+                          gender ?? '',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 10.0,
+                                color: Colors.black,
+                                offset: Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 );
               },
@@ -119,9 +201,21 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
               },
             )
                 : Center(
-              child: Text(
-                "No more profiles!",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: ListView.builder(
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        height: 150,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -154,7 +248,11 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
     );
   }
 
-  Widget _buildIconButton({required IconData icon, required Color color, required VoidCallback onPressed}) {
+  Widget _buildIconButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,

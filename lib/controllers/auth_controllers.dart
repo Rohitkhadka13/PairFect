@@ -13,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../authScreen/home_screen.dart';
 import '../authScreen/login_screen.dart';
 import '../profileScreen/profile_screen.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class AuthController extends GetxController {
   static AuthController authController = Get.find();
@@ -48,12 +50,20 @@ class AuthController extends GetxController {
 
   Future<void> pickImageFileFromGallery() async {
     try {
-      imageFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (imageFile != null) {
-        pickedFile.value = File(imageFile!.path);
+      final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+
+        final originalFilename = pickedFile.name;
+        final sanitizedFilename = originalFilename.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+
+
+        final originalFile = File(pickedFile.path);
+        final tempDir = await getTemporaryDirectory();
+        final newFile = await originalFile.copy('${tempDir.path}/$sanitizedFilename');
+
+        this.pickedFile.value = newFile;
       } else {
-        Get.snackbar(
-            "Profile Image", "Please select an image for your profile");
+        Get.snackbar("Profile Image", "Please select an image for your profile");
       }
     } catch (e) {
       Get.snackbar("Error", "Failed to pick image: $e");
@@ -205,6 +215,11 @@ class AuthController extends GetxController {
     }
   }
 
+  void clearImages() {
+    _images.value = List<ParseFile?>.filled(6, null);
+  }
+
+
   //fetch user ProfileImage from DB
   Future<String?> fetchUserImage() async {
     try {
@@ -321,18 +336,43 @@ class AuthController extends GetxController {
 
   // Pick an image from the gallery
   Future<void> pickImage(int index) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      final imageFile = File(pickedFile.path);
-      await uploadImage(index, imageFile);
+      if (pickedFile != null) {
+
+        final originalFilename = pickedFile.name;
+        final sanitizedFilename =
+        originalFilename.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+
+
+        final originalFile = File(pickedFile.path);
+        final tempDir = await getTemporaryDirectory();
+        final newFile =
+        await originalFile.copy('${tempDir.path}/$sanitizedFilename');
+
+        await uploadImage(index, newFile);
+      } else {
+        Get.snackbar("Image Picker", "No image selected.");
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to pick image: $e");
     }
   }
 
+
   // Upload an image to the database
   Future<void> uploadImage(int index, File imageFile) async {
-    final parseFile = ParseFile(imageFile);
-    await parseFile.save();
+
+    final safeFileName = 'user_image_${index + 1}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    final parseFile = ParseFile(imageFile, name: safeFileName);
+    final saveResult = await parseFile.save();
+
+    if (!saveResult.success) {
+      Get.snackbar("Upload Failed", "Error: ${saveResult.error?.message}");
+      return;
+    }
 
     final user = await ParseUser.currentUser() as ParseUser;
     final query = QueryBuilder<ParseObject>(ParseObject('UserImage'))
@@ -340,24 +380,22 @@ class AuthController extends GetxController {
 
     final response = await query.query();
 
-    if (response.success &&
-        response.results != null &&
-        response.results!.isNotEmpty) {
-      // Update existing record
+    if (response.success && response.results != null && response.results!.isNotEmpty) {
       final userImage = response.results!.first;
       userImage.set('Image${index + 1}', parseFile);
       await userImage.save();
     } else {
-      // Create new record
       final userImage = ParseObject('UserImage')
-        ..set('UserPointer', user.toPointer())..set(
-            'Image${index + 1}', parseFile);
+        ..set('UserPointer', user.toPointer())
+        ..set('Image${index + 1}', parseFile);
       await userImage.save();
     }
 
     _images[index] = parseFile;
     update();
   }
+
+
 
   // Delete an image from the database
   Future<void> deleteImage(int index) async {
@@ -1606,6 +1644,9 @@ class AuthController extends GetxController {
       return null;
     }
   }
+
+
+
 
 
 

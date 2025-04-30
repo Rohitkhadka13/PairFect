@@ -20,7 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController emailTextEditingController = TextEditingController();
   TextEditingController passwordTextEditingController = TextEditingController();
   TextEditingController nameTextEditingController = TextEditingController();
-  TextEditingController dobTextEditingController = TextEditingController(); // For date of birth
+  TextEditingController dobTextEditingController = TextEditingController();
   bool showProgressBar = false;
 
   var authController = AuthController.authController;
@@ -67,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                authController.imageFile == null
+                authController.pickedFile.value == null
                     ? CircleAvatar(
                   radius: 80,
                   backgroundImage:
@@ -81,9 +81,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     shape: BoxShape.circle,
                     color: Colors.grey,
                     image: DecorationImage(
-                      fit: BoxFit.fitHeight,
+                      fit: BoxFit.cover,
                       image: FileImage(
-                        File(authController.imageFile!.path),
+                        File(authController.pickedFile.value!.path),
                       ),
                     ),
                   ),
@@ -92,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: () async {
                     await authController.pickImageFileFromGallery();
                     setState(() {
-                      authController.imageFile;
+                      // Rebuild the widget after selecting the image
                     });
                   },
                   icon: Icon(
@@ -102,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // FirstName
+                // First Name
                 SizedBox(
                   width: MediaQuery.of(context).size.width - 36,
                   height: 60,
@@ -179,6 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         String password = passwordTextEditingController.text.trim();
                         String dob = dobTextEditingController.text.trim();
 
+                        // Check if profile image is selected
                         if (authController.pickedFile.value == null) {
                           Get.snackbar("Error", "Please select a profile image");
                           return;
@@ -189,16 +190,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         });
 
                         try {
+                          // Call signup function
                           await authController.signup(
                             name: name,
                             email: email,
                             password: password,
-                            dob: dob, // Pass the date of birth
+                            dob: dob,
                             profileImage: authController.pickedFile.value!,
                             isProfileComplete: false,
                           );
 
-                          // Clear the form fields and selected image
+                          // Clear the form fields
                           nameTextEditingController.clear();
                           emailTextEditingController.clear();
                           passwordTextEditingController.clear();
