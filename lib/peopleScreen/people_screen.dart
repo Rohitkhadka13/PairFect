@@ -5,6 +5,7 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../controllers/auth_controllers.dart';
+import 'match_screen.dart';
 
 class PeopleScreen extends StatefulWidget {
   const PeopleScreen({super.key});
@@ -68,6 +69,7 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
           'imageUrl': imageFile?.url ?? '',
           'gender': gender,
           'showOnProfile': showOnProfile,
+          'userPointer': userPointer,
         });
       }
 
@@ -137,7 +139,7 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                         fit: BoxFit.cover,
                       )
                           : Image.asset(
-                        'assets/images/default_image.png', // Default image
+                        'assets/images/default_image.png',
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
@@ -186,19 +188,54 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                 );
               },
               cardController: _controller,
-              swipeCompleteCallback: (CardSwipeOrientation orientation, int index) {
+              swipeCompleteCallback: (CardSwipeOrientation orientation, int index) async {
                 final profile = profiles[index];
+                final toUser = profile['userPointer'] as ParseUser;
+                final currentUser = await ParseUser.currentUser() as ParseUser?;
+
+                if (currentUser == null) return;
+
+                String? interactionType;
                 if (orientation == CardSwipeOrientation.right) {
-                  print("Liked ${profile['name']}");
-                } else if (orientation == CardSwipeOrientation.left) {
-                  print("Disliked ${profile['name']}");
+                  interactionType = 'like';
                 } else if (orientation == CardSwipeOrientation.up) {
-                  print("Superliked ${profile['name']}");
+                  interactionType = 'superlike';
                 }
+
+                if (interactionType != null) {
+                  final isMatch = await authController.saveInteraction(
+                    fromUser: currentUser,
+                    toUser: toUser,
+                    interactionType: interactionType,
+                  );
+
+                  if (isMatch) {
+                    final currentUserName = await AuthController().fetchName();
+
+                    if (currentUserName != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MatchScreen(
+                            currentUserName: currentUserName,
+                            matchedUserName: profile['name'] ?? '',
+                          ),
+                        ),
+                      );
+                    } else {
+                      print('Failed to fetch current user name');
+                    }
+                  }
+
+                }
+
                 setState(() {
                   profiles.removeAt(index);
                 });
               },
+
+
+
             )
                 : Center(
               child: Shimmer.fromColors(

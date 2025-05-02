@@ -1644,7 +1644,60 @@ class AuthController extends GetxController {
       return null;
     }
   }
+// fetch User matches from database
+  Future<List> fetchMatches() async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser == null) return [];
 
+    final query = QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
+      ..whereEqualTo('fromUser', currentUser)
+      ..whereEqualTo('isMatch', true)
+      ..includeObject(['toUser']);
+
+    final response = await query.query();
+
+    if (response.success && response.results != null) {
+      return response.results!
+          .map((interaction) => interaction.get<ParseUser>('toUser')!)
+          .toList();
+    }
+    return [];
+  }
+
+//save user swipe interaction
+  Future<bool> saveInteraction({
+    required ParseUser fromUser,
+    required ParseUser toUser,
+    required String interactionType,
+  })
+  async {
+    final reverseQuery = QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
+      ..whereEqualTo('fromUser', toUser)
+      ..whereEqualTo('toUser', fromUser)
+      ..whereContainedIn('interactionType', ['like', 'superlike']);
+
+    final reverseResult = await reverseQuery.query();
+
+    final isMutual = reverseResult.success &&
+        reverseResult.results != null &&
+        reverseResult.results!.isNotEmpty;
+
+    final newInteraction = ParseObject('UserInteractions')
+      ..set('fromUser', fromUser)
+      ..set('toUser', toUser)
+      ..set('interactionType', interactionType)
+      ..set('isMatch', isMutual);
+
+    await newInteraction.save();
+
+    if (isMutual) {
+      final reverseInteraction = reverseResult.results!.first;
+      reverseInteraction.set('isMatch', true);
+      await reverseInteraction.save();
+    }
+
+    return isMutual;
+  }
 
 
 
