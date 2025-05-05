@@ -57,17 +57,19 @@ class _CompleteProfileState extends State<CompleteProfile> {
     for (var key in _loaders.keys) {
       try {
         final value = await _loaders[key]!();
+        if (!mounted) return;
         setState(() {
           _userData[key] = value.isNotEmpty ? value : "Add";
         });
       } catch (e) {
+        if (!mounted) return;
         Get.snackbar("Error", "Failed to load $key data: $e");
-      }finally{
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _loadCurrentBio() async {
