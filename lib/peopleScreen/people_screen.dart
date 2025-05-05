@@ -14,16 +14,18 @@ class PeopleScreen extends StatefulWidget {
   State<PeopleScreen> createState() => _PeopleScreenState();
 }
 
-class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMixin {
+class _PeopleScreenState extends State<PeopleScreen>
+    with TickerProviderStateMixin {
+  String? myImageUrl;
   List<Map<String, dynamic>> profiles = [];
   final AuthController authController = Get.find();
-
   final CardController _controller = CardController();
 
   @override
   void initState() {
     super.initState();
     fetchProfiles();
+    preloadMyImage();
   }
 
   Future<void> fetchProfiles() async {
@@ -44,10 +46,8 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
         final dob = object.get<DateTime>('dob');
         final imageFile = object.get<ParseFile>('imageProfile');
 
-
         String? gender;
         bool showOnProfile = false;
-
 
         final basicQuery = QueryBuilder<ParseObject>(ParseObject('Basic'))
           ..whereEqualTo('userPointer', userPointer);
@@ -76,17 +76,18 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
       setState(() {
         profiles = fetchedProfiles;
       });
-    } catch (e) {
-      debugPrint('Error fetching profiles: $e');
-    }
+    } catch (_) {}
   }
 
-
+  void preloadMyImage() async {
+    myImageUrl = await authController.fetchUserImage();
+  }
 
   int calculateAge(DateTime dob) {
     final today = DateTime.now();
     int age = today.year - dob.year;
-    if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
       age--;
     }
     return age;
@@ -188,10 +189,12 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                 );
               },
               cardController: _controller,
-              swipeCompleteCallback: (CardSwipeOrientation orientation, int index) async {
+              swipeCompleteCallback:
+                  (CardSwipeOrientation orientation, int index) async {
                 final profile = profiles[index];
                 final toUser = profile['userPointer'] as ParseUser;
-                final currentUser = await ParseUser.currentUser() as ParseUser?;
+                final currentUser =
+                await ParseUser.currentUser() as ParseUser?;
 
                 if (currentUser == null) return;
 
@@ -210,32 +213,24 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                   );
 
                   if (isMatch) {
-                    final currentUserName = await AuthController().fetchName();
-
-                    if (currentUserName != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MatchScreen(
-                            currentUserName: currentUserName,
-                            matchedUserName: profile['name'] ?? '',
-                          ),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MatchScreen(
+                          myImageUrl: myImageUrl ?? "",
+                          imageUrl: profile["imageUrl"] ?? '',
+                          matchedUserName: profile['name'] ?? '',
+                          interactionType: interactionType??"",
                         ),
-                      );
-                    } else {
-                      print('Failed to fetch current user name');
-                    }
+                      ),
+                    );
                   }
-
                 }
 
                 setState(() {
                   profiles.removeAt(index);
                 });
               },
-
-
-
             )
                 : Center(
               child: Shimmer.fromColors(
@@ -265,17 +260,23 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                   _buildIconButton(
                     icon: Icons.close,
                     color: Colors.red,
-                    onPressed: () => _controller.triggerLeft(),
+                    onPressed: () {
+                      _controller.triggerLeft();
+                    },
                   ),
                   _buildIconButton(
                     icon: Icons.star,
                     color: Colors.blue,
-                    onPressed: () => _controller.triggerUp(),
+                    onPressed: () {
+                      _controller.triggerUp();
+                    },
                   ),
                   _buildIconButton(
                     icon: Icons.favorite,
                     color: Colors.green,
-                    onPressed: () => _controller.triggerRight(),
+                    onPressed: () {
+                      _controller.triggerRight();
+                    },
                   ),
                 ],
               ),

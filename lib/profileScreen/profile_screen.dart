@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
+import 'package:pairfect/peopleScreen/match_screen.dart';
 import 'package:pairfect/peopleScreen/people_screen.dart';
 import 'package:pairfect/profileScreen/complete_profile.dart';
 import 'package:pairfect/settingScreen/setting_screen.dart';

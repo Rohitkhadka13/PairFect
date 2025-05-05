@@ -47,6 +47,7 @@ dependencies:
   flutter_tindercard_2:
   flutter_dotenv:
   shimmer:
+  google_fonts:
 
 
 

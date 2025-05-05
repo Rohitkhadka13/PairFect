@@ -36,7 +36,7 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     initSharedPreferences();
-    getUserInterests();
+
   }
 
   Future<void> initSharedPreferences() async {
