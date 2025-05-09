@@ -21,6 +21,7 @@ import 'package:pairfect/profileScreen/profile_screen.dart';
 import 'package:pairfect/profileScreen/qualities_screen.dart';
 import 'package:pairfect/widgets/custom_listtile.dart';
 
+import '../authScreen/nav_screen.dart';
 import '../controllers/auth_controllers.dart';
 
 class CompleteProfile extends StatefulWidget {
@@ -131,7 +132,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Get.offAll(ProfileScreen());
+            Get.offAll(() => MainNavigationScreen(initialIndex: 0));
           },
           icon: Icon(
             Icons.chevron_left_rounded,

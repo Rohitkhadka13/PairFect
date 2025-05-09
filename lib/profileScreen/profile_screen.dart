@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
-import 'package:pairfect/peopleScreen/match_screen.dart';
-import 'package:pairfect/peopleScreen/people_screen.dart';
 import 'package:pairfect/profileScreen/complete_profile.dart';
-import 'package:pairfect/settingScreen/setting_screen.dart';
-
 import '../controllers/auth_controllers.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -67,9 +63,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(onPressed: (){
-              Get.to(()=> PeopleScreen());
-            }, icon: Icon(Icons.settings,size: 30,)),
+            child: IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.settings,
+                  size: 30,
+                )),
           )
         ],
       ),
@@ -79,8 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_isLoading)
-              Center(
-                  child: CircularProgressIndicator())
+              Center(child: CircularProgressIndicator())
             else
               Row(
                 children: [
@@ -154,12 +152,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-            SizedBox(height: 20,),
+            SizedBox(
+              height: 20,
+            ),
             GestureDetector(
-                onTap: () async{
+                onTap: () async {
                   authController.clearImages();
-await authController.logout();
-
+                  await authController.logout();
                 },
                 child: Text("Logout"))
           ],

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pairfect/authScreen/nav_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/height_screen.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -182,7 +183,7 @@ class AuthController extends GetxController {
               userLogin.get<bool>('isProfileComplete') ?? false;
 
           if (isProfileComplete) {
-            Get.offAll(() => HomeScreen());
+            Get.offAll(() => MainNavigationScreen(initialIndex: 0,));
           } else {
             Get.offAll(() => HeightScreen());
           }

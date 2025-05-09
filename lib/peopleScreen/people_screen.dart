@@ -46,7 +46,6 @@ class _PeopleScreenState extends State<PeopleScreen>
         if (toUser != null) interactedUserPointers.add(toUser);
       }
 
-
       final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
         ..whereNotEqualTo('userPointer', currentUser)
         ..whereEqualTo('isProfileComplete', true);

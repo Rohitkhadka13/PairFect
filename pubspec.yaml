@@ -48,6 +48,8 @@ dependencies:
   flutter_dotenv:
   shimmer:
   google_fonts:
+  persistent_bottom_nav_bar: ^6.2.1
+
 
 
 

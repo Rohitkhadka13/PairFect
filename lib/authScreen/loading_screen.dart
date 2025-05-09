@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pairfect/authScreen/home_screen.dart';
 import 'package:pairfect/authScreen/login_screen.dart';
+import 'package:pairfect/authScreen/nav_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/height_screen.dart';
 import 'package:pairfect/profileScreen/profile_screen.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
@@ -51,7 +52,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           userProfile.get<bool>('isProfileComplete') ?? false;
 
       if (isProfileComplete) {
-        Get.offAll(() => HomeScreen());
+        Get.offAll(() => MainNavigationScreen(initialIndex: 0,));
       } else {
         Get.offAll(() => HeightScreen());
       }
