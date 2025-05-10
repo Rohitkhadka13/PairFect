@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pairfect/authScreen/chats_screen.dart';
 import 'package:pairfect/authScreen/fyp_screen.dart';
-import 'package:pairfect/authScreen/home_screen.dart';
 import 'package:pairfect/authScreen/like_screen.dart';
+import 'package:pairfect/authScreen/likesyou_screen.dart';
+import 'package:pairfect/authScreen/matches_screen.dart';
 import 'package:pairfect/peopleScreen/people_screen.dart';
 
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
