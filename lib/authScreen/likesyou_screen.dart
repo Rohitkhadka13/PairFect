@@ -77,8 +77,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
         'showOnProfile': showOnProfile,
         'userPointer': userPointer,
       });
-      print("bioResults count: ${bioResults.length}");
-      print("bioMap: $bioMap");
+
 
     }
 
@@ -115,7 +114,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
                 children: const [
                   Icon(Icons.swipe, size: 80, color: Colors.grey),
                   SizedBox(height: 12),
-                  Text("Keep swiping!", style: TextStyle(fontSize: 18)),
+                  Text("No likes yet! Keep swiping!", style: TextStyle(fontSize: 18)),
                 ],
               ),
             );

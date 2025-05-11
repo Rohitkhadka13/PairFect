@@ -42,31 +42,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.disc_full_rounded),
+        icon: Icon(Icons.explore),
         title: "Discover",
         activeColorPrimary: Colors.red,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.menu),
+        icon: Icon(Icons.people),
         title: "People",
         activeColorPrimary: Colors.red,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.favorite),
-        title: "Like",
+        icon: Icon(Icons.favorite_border),
+        title: "Likes",
         activeColorPrimary: Colors.red,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.chat),
+        icon: Icon(Icons.chat_bubble_outline),
         title: "Chat",
         activeColorPrimary: Colors.red,
         inactiveColorPrimary: Colors.grey,
       ),
     ];
   }
+
 
   @override
   Widget build(BuildContext context) {

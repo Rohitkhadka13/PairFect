@@ -14,8 +14,7 @@ class PeopleScreen extends StatefulWidget {
   State<PeopleScreen> createState() => _PeopleScreenState();
 }
 
-class _PeopleScreenState extends State<PeopleScreen>
-    with TickerProviderStateMixin {
+class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMixin {
   bool isProcessingSwipe = false;
   String? myImageUrl;
   List<Map<String, dynamic>> profiles = [];
@@ -33,7 +32,6 @@ class _PeopleScreenState extends State<PeopleScreen>
     try {
       final currentUser = await ParseUser.currentUser() as ParseUser?;
       if (currentUser == null) return;
-
 
       final interactionQuery = QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
         ..whereEqualTo('fromUser', currentUser);
@@ -77,14 +75,19 @@ class _PeopleScreenState extends State<PeopleScreen>
           }
         }
 
+        final imageUrl = imageFile?.url ?? '';
         fetchedProfiles.add({
           'name': object.get<String>('name') ?? '',
           'dob': dob,
-          'imageUrl': imageFile?.url ?? '',
+          'imageUrl': imageUrl,
           'gender': gender,
           'showOnProfile': showOnProfile,
           'userPointer': userPointer,
         });
+
+        if (imageUrl.isNotEmpty) {
+          precacheImage(NetworkImage(imageUrl), context);
+        }
       }
 
       setState(() {
@@ -93,7 +96,6 @@ class _PeopleScreenState extends State<PeopleScreen>
     } catch (_) {}
   }
 
-
   void preloadMyImage() async {
     myImageUrl = await authController.fetchUserImage();
   }
@@ -101,8 +103,7 @@ class _PeopleScreenState extends State<PeopleScreen>
   int calculateAge(DateTime dob) {
     final today = DateTime.now();
     int age = today.year - dob.year;
-    if (today.month < dob.month ||
-        (today.month == dob.month && today.day < dob.day)) {
+    if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
       age--;
     }
     return age;
@@ -125,153 +126,150 @@ class _PeopleScreenState extends State<PeopleScreen>
           Expanded(
             child: profiles.isNotEmpty
                 ? TinderSwapCard(
-                    swipeUp: true,
-                    swipeDown: false,
-                    orientation: AmassOrientation.top,
-                    totalNum: profiles.length,
-                    stackNum: 3,
-                    maxWidth: MediaQuery.of(context).size.width * 0.9,
-                    maxHeight: MediaQuery.of(context).size.height * 0.8,
-                    minWidth: MediaQuery.of(context).size.width * 0.8,
-                    minHeight: MediaQuery.of(context).size.height * 0.7,
-                    cardBuilder: (context, index) {
-                      final profile = profiles[index];
-                      final name = profile['name'] as String;
-                      final imageUrl = profile['imageUrl'] as String?;
-                      final dob = profile['dob'] as DateTime?;
-                      final age = dob != null ? calculateAge(dob) : null;
-                      final gender = profile['gender'] as String?;
-                      final showOnProfile = profile['showOnProfile'] as bool?;
+              swipeUp: true,
+              swipeDown: false,
+              orientation: AmassOrientation.top,
+              totalNum: profiles.length,
+              stackNum: 3,
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+              minWidth: MediaQuery.of(context).size.width * 0.8,
+              minHeight: MediaQuery.of(context).size.height * 0.7,
+              cardBuilder: (context, index) {
+                final profile = profiles[index];
+                final name = profile['name'] as String;
+                final imageUrl = profile['imageUrl'] as String?;
+                final dob = profile['dob'] as DateTime?;
+                final age = dob != null ? calculateAge(dob) : null;
+                final gender = profile['gender'] as String?;
+                final showOnProfile = profile['showOnProfile'] as bool?;
 
-                      return Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: imageUrl != null
-                                ? Image.network(
-                                    imageUrl,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.asset(
-                                    'assets/images/default_image.png',
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                          ),
-                          Positioned(
-                            bottom: 20,
-                            left: 20,
-                            child: Text(
-                              "$name, ${age ?? 'N/A'}",
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 10.0,
-                                    color: Colors.black,
-                                    offset: Offset(2, 2),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (showOnProfile ?? false)
-                            Positioned(
-                              bottom: 50,
-                              left: 20,
-                              child: Text(
-                                gender ?? '',
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 10.0,
-                                      color: Colors.black,
-                                      offset: Offset(2, 2),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                    cardController: _controller,
-                    swipeCompleteCallback:
-                        (CardSwipeOrientation orientation, int index) async {
-                      if (index >= profiles.length) return;
-
-                      final profile = profiles[index];
-                      final toUser = profile['userPointer'] as ParseUser;
-                      final currentUser =
-                          await ParseUser.currentUser() as ParseUser?;
-
-                      if (currentUser == null) return;
-
-                      String? interactionType;
-                      if (orientation == CardSwipeOrientation.right) {
-                        interactionType = 'like';
-                      } else if (orientation == CardSwipeOrientation.up) {
-                        interactionType = 'superlike';
-                      }
-
-                      if (interactionType != null) {
-                        final isMatch = await authController.saveInteraction(
-                          fromUser: currentUser,
-                          toUser: toUser,
-                          interactionType: interactionType,
-                        );
-
-                        if (isMatch) {
-
-                          Future.delayed(const Duration(milliseconds: 300), () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => MatchScreen(
-                                  myImageUrl: myImageUrl ?? "",
-                                  imageUrl: profile["imageUrl"] ?? '',
-                                  matchedUserName: profile['name'] ?? '',
-                                  interactionType: interactionType ?? "",
-                                ),
-                              ),
-                            );
-                          });
-                        }
-                      }
-
-                      if (mounted) {
-                        setState(() {
-                          profiles.removeAt(index);
-                        });
-                      }
-                    },
-                  )
-                : Center(
-                    child: Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: ListView.builder(
-                        itemCount: 5,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              height: 150,
-                              color: Colors.white,
-                            ),
-                          );
-                        },
+                return Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: imageUrl != null && imageUrl.isNotEmpty
+                          ? FadeInImage.assetNetwork(
+                        placeholder: 'assets/images/placeholder.png',
+                        image: imageUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                          : Image.asset(
+                        'assets/images/default_image.png',
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
+                    Positioned(
+                      bottom: 20,
+                      left: 20,
+                      child: Text(
+                        "$name, ${age ?? 'N/A'}",
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 10.0,
+                              color: Colors.black,
+                              offset: Offset(2, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (showOnProfile ?? false)
+                      Positioned(
+                        bottom: 50,
+                        left: 20,
+                        child: Text(
+                          gender ?? '',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 10.0,
+                                color: Colors.black,
+                                offset: Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+              cardController: _controller,
+              swipeCompleteCallback: (CardSwipeOrientation orientation, int index) async {
+                if (index >= profiles.length) return;
+
+                final profile = profiles[index];
+                final toUser = profile['userPointer'] as ParseUser;
+                final currentUser = await ParseUser.currentUser() as ParseUser?;
+                if (currentUser == null) return;
+
+                String? interactionType;
+                if (orientation == CardSwipeOrientation.right) {
+                  interactionType = 'like';
+                } else if (orientation == CardSwipeOrientation.up) {
+                  interactionType = 'superlike';
+                }
+
+                if (interactionType != null) {
+                  final isMatch = await authController.saveInteraction(
+                    fromUser: currentUser,
+                    toUser: toUser,
+                    interactionType: interactionType,
+                  );
+
+                  if (isMatch) {
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MatchScreen(
+                            myImageUrl: myImageUrl ?? "",
+                            imageUrl: profile["imageUrl"] ?? '',
+                            matchedUserName: profile['name'] ?? '',
+                            interactionType: interactionType ?? "",
+                          ),
+                        ),
+                      );
+                    });
+                  }
+                }
+
+                if (mounted) {
+                  setState(() {
+                    profiles.removeAt(index);
+                  });
+                }
+              },
+            )
+                : Center(
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: ListView.builder(
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        height: 150,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
           if (profiles.isNotEmpty)
             Padding(
@@ -316,10 +314,10 @@ class _PeopleScreenState extends State<PeopleScreen>
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.2),
+        color: color.withAlpha(51), // ~20% opacity
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.5),
+            color: color.withAlpha(128), // ~50% opacity
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
