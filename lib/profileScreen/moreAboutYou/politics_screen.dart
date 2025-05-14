@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/looking_for_screen.dart';
+import 'package:pairfect/profileScreen/moreAboutYou/religion_screen.dart';
 
 import '../../controllers/auth_controllers.dart';
 import '../complete_profile.dart';
@@ -33,7 +34,7 @@ class _PoliticsScreenState extends State<PoliticsScreen> {
     if (_isProfileCompleted) {
       Get.to(() => CompleteProfile());
     } else {
-      Get.offAll(() => LookingForScreen());
+      Get.offAll(() => ReligionScreen());
     }
   }
 

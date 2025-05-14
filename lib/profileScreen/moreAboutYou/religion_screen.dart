@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pairfect/profileScreen/moreAboutYou/looking_for_screen.dart';
 
 import '../../controllers/auth_controllers.dart';
 import '../complete_profile.dart';
@@ -32,7 +33,7 @@ class _ReligionScreenState extends State<ReligionScreen> {
     if (_isProfileCompleted) {
       Get.offAll(() => CompleteProfile());
     } else {
-      Get.offAll(() => CompleteProfile());
+      Get.offAll(() => LookingForScreen());
     }
   }
   Future<void> _loadReligion() async {
