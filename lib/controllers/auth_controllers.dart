@@ -21,6 +21,7 @@ class AuthController extends GetxController {
   static AuthController authController = Get.find();
   Rx<File?> pickedFile = Rx<File?>(null);
 
+
   File? get profileImage => pickedFile.value;
   XFile? imageFile;
   late SharedPreferences prefs;

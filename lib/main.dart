@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:pairfect/authScreen/loading_screen.dart';
 import 'package:pairfect/controllers/auth_controllers.dart';
 import 'package:pairfect/controllers/password_controller.dart';
+import 'package:pairfect/controllers/profile_controller.dart';
 
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
@@ -25,6 +26,7 @@ void main() async {
 
   Get.put(AuthController());
   Get.put(PasswordController());
+  Get.put(ProfileController());
   runApp(const MyApp());
 }
 
