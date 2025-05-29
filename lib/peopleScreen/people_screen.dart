@@ -150,14 +150,14 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
                       borderRadius: BorderRadius.circular(20),
                       child: imageUrl != null && imageUrl.isNotEmpty
                           ? FadeInImage.assetNetwork(
-                        placeholder: 'assets/images/placeholder.png',
+                        placeholder: 'assets/images/profile_avatar.jpg',
                         image: imageUrl,
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
                       )
                           : Image.asset(
-                        'assets/images/default_image.png',
+                        'assets/images/profile_avatar.jpg',
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
@@ -314,10 +314,10 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withAlpha(51), // ~20% opacity
+        color: color.withAlpha(51),
         boxShadow: [
           BoxShadow(
-            color: color.withAlpha(128), // ~50% opacity
+            color: color.withAlpha(128),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

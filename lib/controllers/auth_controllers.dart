@@ -11,11 +11,8 @@ import 'package:pairfect/profileScreen/moreAboutYou/height_screen.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../authScreen/home_screen.dart';
 import '../authScreen/login_screen.dart';
-import '../profileScreen/profile_screen.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 class AuthController extends GetxController {
   static AuthController authController = Get.find();
@@ -38,6 +35,7 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     initSharedPreferences();
+
 
   }
 
@@ -775,6 +773,9 @@ class AuthController extends GetxController {
       throw Exception("UserLogin object not found");
     }
   }
+
+  //report user
+
 
 
 

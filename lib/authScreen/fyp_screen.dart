@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import '../controllers/profile_controller.dart';
 
@@ -43,6 +44,8 @@ class ForYouPage extends StatelessWidget {
                     errorWidget: (context, url, error) => const Icon(Icons.error),
                   ),
                 ),
+
+
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -52,6 +55,14 @@ class ForYouPage extends StatelessWidget {
                         end: Alignment.bottomCenter,
                       ),
                     ),
+                  ),
+                ),
+                Positioned(
+                  top: 20,
+                  right: 20,
+                  child: IconButton(
+                    icon: const Icon(Icons.report, color: Colors.red,size: 40,),
+                    onPressed: () => showReportDialog(context, profile['userPointer']),
                   ),
                 ),
                 Positioned(
@@ -158,6 +169,46 @@ class ForYouPage extends StatelessWidget {
       ),
     );
   }
+  void showReportDialog(BuildContext context, ParseUser userPointer) {
+    final List<String> reportReasons = [
+      'Fake Profile',
+      'Inappropriate Content',
+      'Harassment',
+      'Spam',
+      'Other',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Report User'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: reportReasons.map((reason) {
+              return ListTile(
+                title: Text(reason),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final success = await controller.reportUser(userPointer, reason);
+                  if (success) {
+                    controller.profiles.removeWhere(
+                          (profile) => profile['userPointer'].objectId == userPointer.objectId,
+                    );
+                    Get.snackbar('Reported', 'User has been reported ');
+                  } else {
+                    Get.snackbar('Failed', 'Failed to report user.');
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+
 }
 
 String getDrinkingDisplayText(String? value) {

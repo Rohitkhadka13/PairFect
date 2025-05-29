@@ -132,5 +132,18 @@ class ProfileController extends GetxController {
     return isMatch;
   }
 
+  Future<bool> reportUser(ParseUser targetUser, String reason, {String status = 'pending'}) async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser == null) return false;
+
+    final report = ParseObject('Reports')
+      ..set('fromUser', currentUser.toPointer())
+      ..set('toUser', targetUser.toPointer())
+      ..set('reason', reason)
+      ..set('status', status);
+
+    final response = await report.save();
+    return response.success;
+  }
 
 }
