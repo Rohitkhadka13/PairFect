@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pairfect/profileScreen/moreAboutYou/looking_for_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/religion_screen.dart';
 
 import '../../controllers/auth_controllers.dart';
@@ -61,18 +60,18 @@ class _PoliticsScreenState extends State<PoliticsScreen> {
     return Scaffold(
       appBar: _isProfileCompleted
           ? AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () {
-            Get.back();
-          },
-          icon: const Icon(
-            Icons.close,
-            size: 40,
-            color: Colors.black87,
-          ),
-        ),
-      )
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                onPressed: () {
+                  Get.back();
+                },
+                icon: const Icon(
+                  Icons.close,
+                  size: 40,
+                  color: Colors.black87,
+                ),
+              ),
+            )
           : null,
       body: SafeArea(
         child: Padding(
@@ -90,14 +89,19 @@ class _PoliticsScreenState extends State<PoliticsScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
                 ),
                 SizedBox(height: 30),
-               _buildPolitics("Apolitical"),
-                SizedBox(height: 10,),
+                _buildPolitics("Apolitical"),
+                SizedBox(
+                  height: 10,
+                ),
                 _buildPolitics("Moderate"),
-                SizedBox(height: 10,),
-               _buildPolitics("Liberal"),
-                SizedBox(height: 10,),
-               _buildPolitics("Conservative")
-
+                SizedBox(
+                  height: 10,
+                ),
+                _buildPolitics("Liberal"),
+                SizedBox(
+                  height: 10,
+                ),
+                _buildPolitics("Conservative")
               ],
             ),
           ),
@@ -105,6 +109,7 @@ class _PoliticsScreenState extends State<PoliticsScreen> {
       ),
     );
   }
+
   Widget _buildPolitics(String politics) {
     return GestureDetector(
       onTap: () {
@@ -114,10 +119,11 @@ class _PoliticsScreenState extends State<PoliticsScreen> {
         height: 80,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: _selectedPolitics == politics ? Colors.black : Colors.grey.shade200,
+          color: _selectedPolitics == politics
+              ? Colors.black
+              : Colors.grey.shade200,
           border: Border.all(
-            color:
-            _selectedPolitics == politics ? Colors.black : Colors.grey,
+            color: _selectedPolitics == politics ? Colors.black : Colors.grey,
             width: _selectedPolitics == politics ? 4 : 2,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -126,9 +132,10 @@ class _PoliticsScreenState extends State<PoliticsScreen> {
           child: Text(
             politics,
             style: TextStyle(
-              fontSize: 20,
-              color:  _selectedPolitics == politics ? Colors.white :Colors.black
-            ),
+                fontSize: 20,
+                color: _selectedPolitics == politics
+                    ? Colors.white
+                    : Colors.black),
           ),
         ),
       ),

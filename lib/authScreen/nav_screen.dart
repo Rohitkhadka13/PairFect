@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pairfect/authScreen/chats_screen.dart';
 import 'package:pairfect/authScreen/fyp_screen.dart';
 import 'package:pairfect/authScreen/like_screen.dart';
-import 'package:pairfect/authScreen/likesyou_screen.dart';
-import 'package:pairfect/authScreen/matches_screen.dart';
 import 'package:pairfect/peopleScreen/people_screen.dart';
 
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import '../profileScreen/profile_screen.dart';
-
-
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key, required int initialIndex});
@@ -19,7 +15,8 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  final PersistentTabController _controller = PersistentTabController(initialIndex: 0);
+  final PersistentTabController _controller =
+      PersistentTabController(initialIndex: 0);
 
   List<Widget> _buildScreens() {
     return [
@@ -28,8 +25,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       PeopleScreen(),
       LikeScreen(),
       ChatsScreen(),
-
-
     ];
   }
 
@@ -68,7 +63,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
   }
 
-
   @override
   Widget build(BuildContext context) {
     return PersistentTabView(
@@ -86,8 +80,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         borderRadius: BorderRadius.circular(20.0),
         colorBehindNavBar: Colors.white,
       ),
-
-
     );
   }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pairfect/authScreen/home_screen.dart';
 import 'package:pairfect/authScreen/login_screen.dart';
 import 'package:pairfect/authScreen/nav_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/height_screen.dart';
-import 'package:pairfect/profileScreen/profile_screen.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../controllers/auth_controllers.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -50,9 +50,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
       final userProfile = response.results!.first;
       final isProfileComplete =
           userProfile.get<bool>('isProfileComplete') ?? false;
-
+//save location
+      await Get.find<AuthController>().fetchAndSaveUserLocation();
       if (isProfileComplete) {
-        Get.offAll(() => MainNavigationScreen(initialIndex: 0,));
+        Get.offAll(() => MainNavigationScreen(
+              initialIndex: 0,
+            ));
       } else {
         Get.offAll(() => HeightScreen());
       }

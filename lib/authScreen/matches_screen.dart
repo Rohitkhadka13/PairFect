@@ -38,18 +38,13 @@ class _YourMatchScreenState extends State<YourMatchScreen> {
         .whereType<ParseUser>()
         .toList();
 
-    final basicQuery = QueryBuilder<ParseObject>(ParseObject('Basic'))
-      ..whereContainedIn('userPointer', userPointers);
-    final basicResults = await basicQuery.find();
+
 
     final bioQuery = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
       ..whereContainedIn('userPointer', userPointers);
     final bioResults = await bioQuery.find();
 
-    final basicMap = {
-      for (var b in basicResults)
-        b.get<ParseUser>('userPointer')?.objectId: b
-    };
+
 
     final bioMap = {
       for (var b in bioResults)
@@ -63,7 +58,6 @@ class _YourMatchScreenState extends State<YourMatchScreen> {
       final objectId = userPointer?.objectId;
       final dob = object.get<DateTime>('dob');
       final imageUrl = object.get<ParseFile>('imageProfile')?.url ?? '';
-      final basic = basicMap[objectId];
       final bio = bioMap[objectId] ?? 'User has no bio';
 
       fetchedProfiles.add({

@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +37,7 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     initSharedPreferences();
+
 
 
   }
@@ -774,7 +777,7 @@ class AuthController extends GetxController {
     }
   }
 
-  //report user
+
 
 
 
@@ -1703,7 +1706,67 @@ class AuthController extends GetxController {
   }
 
 
+//fetch and save user location
+  Future<void> fetchAndSaveUserLocation() async {
 
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+    }
+
+
+    final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    final geoPoint = ParseGeoPoint(latitude: position.latitude, longitude: position.longitude);
+
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser == null) return;
+
+    final loginQuery = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+      ..whereEqualTo('userPointer', currentUser);
+
+    final result = await loginQuery.query();
+
+    if (result.success && result.results != null && result.results!.isNotEmpty) {
+      final userLogin = result.results!.first;
+      userLogin.set('location', geoPoint);
+      await userLogin.save();
+    }
+  }
+
+  //fetch location from db
+  Future<String?> fetchAndDisplayUserLocation() async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser == null) return null;
+
+    final loginQuery = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+      ..whereEqualTo('userPointer', currentUser);
+
+    final result = await loginQuery.query();
+
+    if (result.success && result.results != null && result.results!.isNotEmpty) {
+      final userLogin = result.results!.first;
+      final geoPoint = userLogin.get<ParseGeoPoint>('location');
+      if (geoPoint == null) return null;
+
+      try {
+        final placemarks = await placemarkFromCoordinates(
+          geoPoint.latitude!,
+          geoPoint.longitude!,
+        ).timeout(const Duration(seconds: 10), onTimeout: () {
+          throw Exception("Reverse geocoding timed out");
+        });
+
+        final place = placemarks.first;
+        final locationString = "${place.locality}, ${place.administrativeArea}, ${place.country}";
+        return locationString;
+      } catch (e) {
+        print("Location fetch error: $e");
+        return "Location unavailable";
+      }
+    }
+
+    return null;
+  }
 
 
 }

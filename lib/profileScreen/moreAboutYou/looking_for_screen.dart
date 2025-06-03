@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pairfect/profileScreen/complete_profile.dart';
 import 'package:pairfect/profileScreen/profile_screen.dart';
 
 import '../../controllers/auth_controllers.dart';
@@ -24,7 +23,6 @@ class _LookingForScreenState extends State<LookingForScreen> {
     "A life partner",
     "Ethical non-monogamy"
   ];
-  
 
   @override
   void initState() {
@@ -62,8 +60,7 @@ class _LookingForScreenState extends State<LookingForScreen> {
     }
     await authController.saveLookingFor(selectedOptions);
 
-    Get.offAll(()=> ProfileScreen());
-
+    Get.offAll(() => ProfileScreen());
   }
 
   void _handleCheckboxSelection(int index) {
@@ -84,18 +81,18 @@ class _LookingForScreenState extends State<LookingForScreen> {
     return Scaffold(
       appBar: _isProfileCompleted
           ? AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () {
-            Get.back();
-          },
-          icon: const Icon(
-            Icons.close,
-            size: 40,
-            color: Colors.black87,
-          ),
-        ),
-      )
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                onPressed: () {
+                  Get.back();
+                },
+                icon: const Icon(
+                  Icons.close,
+                  size: 40,
+                  color: Colors.black87,
+                ),
+              ),
+            )
           : null,
       body: SafeArea(
         child: Padding(
@@ -130,7 +127,7 @@ class _LookingForScreenState extends State<LookingForScreen> {
                 ),
               ),
               ElevatedButton(
-                onPressed:(){
+                onPressed: () {
                   _saveSelectedOptions();
                   authController.setProfileCompleted();
                 },
@@ -147,7 +144,6 @@ class _LookingForScreenState extends State<LookingForScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
-        
             ],
           ),
         ),
@@ -180,9 +176,8 @@ class _LookingForScreenState extends State<LookingForScreen> {
             Text(
               text,
               style: TextStyle(
-                fontSize: 20,
-                color: isSelected[index] ? Colors.white:Colors.black
-              ),
+                  fontSize: 20,
+                  color: isSelected[index] ? Colors.white : Colors.black),
             ),
           ],
         ),

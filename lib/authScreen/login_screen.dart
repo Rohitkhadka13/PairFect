@@ -4,8 +4,6 @@ import 'package:get/get.dart';
 import 'package:pairfect/authScreen/register_screen.dart';
 import 'package:pairfect/controllers/auth_controllers.dart';
 import 'package:pairfect/widgets/custom_text_field_widget.dart';
-import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showProgressBar = false;
 
   var authController = AuthController.authController;
-
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +63,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return "Please enter your email";
                       }
-                      if (!RegExp(r'^[\w-]+(\.[\w-]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$')
+                      if (!RegExp(
+                              r'^[\w-]+(\.[\w-]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$')
                           .hasMatch(value)) {
                         return "Please enter a valid email";
                       }
@@ -114,7 +112,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Validate the form
                       if (_formKey.currentState!.validate()) {
                         String email = emailTextEditingController.text.trim();
-                        String password = passwordTextEditingController.text.trim();
+                        String password =
+                            passwordTextEditingController.text.trim();
 
                         setState(() {
                           showProgressBar = true;
@@ -125,9 +124,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             email: email,
                             password: password,
                           );
-
-
-
                         } catch (e) {
                           rethrow;
                         } finally {
@@ -179,8 +175,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Progress Bar
                 showProgressBar
                     ? CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                )
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      )
                     : Container(),
                 const SizedBox(height: 30),
               ],

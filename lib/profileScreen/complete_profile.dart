@@ -7,6 +7,7 @@ import 'package:pairfect/profileScreen/aboutYou/gender_screen.dart';
 import 'package:pairfect/profileScreen/aboutYou/occupation_screen.dart';
 import 'package:pairfect/profileScreen/causes_screen.dart';
 import 'package:pairfect/profileScreen/interest_screen.dart';
+import 'package:pairfect/profileScreen/location_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/drinking_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/exercise_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/have_kids_screen.dart';
@@ -17,7 +18,6 @@ import 'package:pairfect/profileScreen/moreAboutYou/politics_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/religion_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/smoking_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/zodiac_screen.dart';
-import 'package:pairfect/profileScreen/profile_screen.dart';
 import 'package:pairfect/profileScreen/qualities_screen.dart';
 import 'package:pairfect/widgets/custom_listtile.dart';
 
@@ -39,10 +39,11 @@ class _CompleteProfileState extends State<CompleteProfile> {
   late final Map<String, Future<String> Function()> _loaders;
 
   final Map<String, String> _userData = {
-    "job":"Add",
-    "education":"Add",
-    "gender":"Add",
-    "height":"Add",
+    "job": "Add",
+    "education": "Add",
+    "gender": "Add",
+    "location": "Add",
+    "height": "Add",
     "exercise": "Add",
     "drinking": "Add",
     "smoking": "Add",
@@ -89,7 +90,9 @@ class _CompleteProfileState extends State<CompleteProfile> {
     _loaders = {
       "job": () async {
         await _authController.fetchJob();
-        return _authController.jobs.isNotEmpty ? _authController.jobs.first["title"] ?? "Add" : "Add";
+        return _authController.jobs.isNotEmpty
+            ? _authController.jobs.first["title"] ?? "Add"
+            : "Add";
       },
       "education": () async {
         await _authController.fetchEducation();
@@ -98,7 +101,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
             : "Add";
       },
       "gender": () async =>
-      (await _authController.getUserGender())?["gender"] ?? "Add",
+          (await _authController.getUserGender())?["gender"] ?? "Add",
+      //  "location":() async => await _authController.fetchAndDisplayUserLocation()??"Add",
       "height": () async => await _authController.fetchHeight() ?? "Add",
       "exercise": () => _authController.loadExercise(),
       "drinking": () => _authController.loadDrinkingHabits(),
@@ -112,7 +116,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
       "zodiac": () => _authController.loadZodiac(),
       "politics": () => _authController.loadPoliticalLeaning(),
       "religion": () => _authController.loadReligion(),
-
     };
 
     _loadUserData();
@@ -214,19 +217,21 @@ class _CompleteProfileState extends State<CompleteProfile> {
                         Expanded(
                           child: interests.isNotEmpty
                               ? SingleChildScrollView(
-                            child: Wrap(
-                              spacing: 8.0,
-                              runSpacing: 4.0,
-                              children: interests
-                                  .map((interest) =>
-                                  Chip(label: Text(interest)))
-                                  .toList(),
-                            ),
-                          )
+                                  child: Wrap(
+                                    spacing: 8.0,
+                                    runSpacing: 4.0,
+                                    children: interests
+                                        .map((interest) =>
+                                            Chip(label: Text(interest)))
+                                        .toList(),
+                                  ),
+                                )
                               : Text(
-                            "Add interest badges",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
+                                  "Add interest badges",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
                         ),
                         Icon(Icons.arrow_forward_ios_outlined),
                       ],
@@ -279,19 +284,22 @@ class _CompleteProfileState extends State<CompleteProfile> {
                         Expanded(
                           child: causes.isNotEmpty
                               ? SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Wrap(
-                              spacing: 8.0,
-                              runSpacing: 4.0,
-                              children: causes
-                                  .map((cause) => Chip(label: Text(cause)))
-                                  .toList(),
-                            ),
-                          )
+                                  scrollDirection: Axis.vertical,
+                                  child: Wrap(
+                                    spacing: 8.0,
+                                    runSpacing: 4.0,
+                                    children: causes
+                                        .map(
+                                            (cause) => Chip(label: Text(cause)))
+                                        .toList(),
+                                  ),
+                                )
                               : Text(
-                            "Add Causes and  communities",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
+                                  "Add Causes and  communities",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
                         ),
                         Icon(Icons.arrow_forward_ios_outlined),
                       ],
@@ -342,19 +350,22 @@ class _CompleteProfileState extends State<CompleteProfile> {
                         Expanded(
                           child: quality.isNotEmpty
                               ? SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Wrap(
-                              spacing: 8.0,
-                              runSpacing: 4.0,
-                              children: quality
-                                  .map((quality) => Chip(label: Text(quality)))
-                                  .toList(),
-                            ),
-                          )
+                                  scrollDirection: Axis.vertical,
+                                  child: Wrap(
+                                    spacing: 8.0,
+                                    runSpacing: 4.0,
+                                    children: quality
+                                        .map((quality) =>
+                                            Chip(label: Text(quality)))
+                                        .toList(),
+                                  ),
+                                )
                               : Text(
-                            "Add their qualities",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
+                                  "Add their qualities",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
                         ),
                         Icon(Icons.arrow_forward_ios_outlined),
                       ],
@@ -410,7 +421,9 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
               //Add work
               CustomListTile(
-                onPressed: (){Get.to(()=> OccupationScreen());},
+                onPressed: () {
+                  Get.to(() => OccupationScreen());
+                },
                 leading: Icons.work,
                 title: "Work",
                 trailing: _userData["job"],
@@ -418,7 +431,9 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
               //Add Education
               CustomListTile(
-                onPressed: (){Get.to(()=> EducationScreen());},
+                onPressed: () {
+                  Get.to(() => EducationScreen());
+                },
                 leading: Icons.school,
                 title: "Education",
                 trailing: _userData["education"],
@@ -426,20 +441,22 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
               //Add Gender
               CustomListTile(
-                onPressed: (){
-                  Get.to(()=> GenderScreen());
+                onPressed: () {
+                  Get.to(() => GenderScreen());
                 },
                 leading: Icons.person,
                 title: "Gender",
                 trailing: _userData["gender"],
-
               ),
 
               //Add Location
               CustomListTile(
+                onPressed: () {
+                  Get.to(() => LocationScreen());
+                },
                 leading: Icons.location_pin,
                 title: "Location",
-                trailing: "Add",
+                trailing: _userData["location"],
               ),
 
               //Add HomeTown
@@ -546,9 +563,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
         ),
       ),
     );
-
-
   }
+
   Widget _buildImageContainer(int index) {
     return GestureDetector(
       onTap: () async {
