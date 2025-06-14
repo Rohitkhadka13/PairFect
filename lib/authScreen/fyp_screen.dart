@@ -55,6 +55,60 @@ class ForYouPage extends StatelessWidget {
                   ),
                 ),
                 Positioned(
+                  top: 40,
+                  right: 16,
+                  child: IconButton(
+                    icon: Icon(Icons.flag, color: Colors.white),
+                    onPressed: () {
+                      String selectedReason = 'Inappropriate Content';
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) => AlertDialog(
+                              title: Text('Report User'),
+                              content: DropdownButton<String>(
+                                isExpanded: true,
+                                value: selectedReason,
+                                items: [
+                                  'Inappropriate Content',
+                                  'Spam',
+                                  'Fake Profile',
+                                  'Harassment',
+                                  'Other',
+                                ].map((reason) {
+                                  return DropdownMenuItem(
+                                    value: reason,
+                                    child: Text(reason),
+                                  );
+                                }).toList(),
+                                onChanged: (value) => setState(() {
+                                  selectedReason = value!;
+                                }),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    controller.reportUser(profile['userPointer'], selectedReason);
+                                  },
+                                  child: Text('Submit'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+
+                  ),
+                ),
+
+                Positioned(
                   left: 16,
                   bottom: 110,
                   right: 16,
@@ -84,7 +138,7 @@ class ForYouPage extends StatelessWidget {
                           if (profile['smoking'] != null)
                             buildTag(getSmokingDisplayText(profile['smoking']), FontAwesomeIcons.smoking),
                           if (profile['drinking'] != null)
-                            buildTag(getDrinkingDisplayText(profile['drinking']), FontAwesomeIcons.wineGlassAlt),
+                            buildTag(getDrinkingDisplayText(profile['drinking']), FontAwesomeIcons.wineGlass),
                         ],
                       ),
                       const SizedBox(height: 10),

@@ -158,29 +158,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           Container(
             color: Colors.grey[300],
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Edit Name",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    Icon(Icons.arrow_forward_ios),
-                  ],
-                ),
-                SizedBox(height: 20),
+                _settingsRow("Edit Name", Icons.arrow_forward_ios),
+                const Divider(),
+                _settingsRow("About Us", Icons.arrow_forward_ios),
+                const Divider(),
+                _settingsRow("Privacy & Policy", Icons.arrow_forward_ios),
+                const Divider(),
+
+
+                _settingsRow("Terms & Conditions", Icons.description),
+                const Divider(),
+                _settingsRow("App Version", Icons.info),
+                const Divider(),
+                _settingsRow("Delete My Account", Icons.delete, textColor: Colors.red),
+                const Divider(),
+                const SizedBox(height: 20),
                 GestureDetector(
                   onTap: () async {
                     authController.clearImages();
                     await authController.logout();
                   },
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text("Logout"),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Text(
+                      "Logout",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -190,4 +200,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+Widget _settingsRow(String label, IconData icon, {Color textColor = Colors.black}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 18, color: textColor),
+        ),
+        Icon(icon, color: textColor, size: 18),
+      ],
+    ),
+  );
 }

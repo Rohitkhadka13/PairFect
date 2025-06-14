@@ -50,7 +50,7 @@ dependencies:
   google_fonts:
   persistent_bottom_nav_bar: ^6.2.1
   font_awesome_flutter:
-
+  geolocator:
   geocoding: 
 
 

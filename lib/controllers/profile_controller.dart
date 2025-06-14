@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
@@ -132,18 +133,40 @@ class ProfileController extends GetxController {
     return isMatch;
   }
 
-  Future<bool> reportUser(ParseUser targetUser, String reason, {String status = 'pending'}) async {
-    final currentUser = await ParseUser.currentUser() as ParseUser?;
-    if (currentUser == null) return false;
+  Future<void> reportUser(ParseObject toUser, String reason) async {
+    final currentUser = await ParseUser.currentUser() as ParseUser;
+
+    final query = QueryBuilder<ParseObject>(ParseObject('Reports'))
+      ..whereEqualTo('fromUser', currentUser)
+      ..whereEqualTo('toUser', toUser);
+
+    final List<ParseObject> results = await query.find();
+
+    if (results.isNotEmpty) {
+      Get.snackbar("Already Reported", "You have already reported this user.",
+          backgroundColor: Colors.orange, colorText: Colors.white);
+      return;
+    }
 
     final report = ParseObject('Reports')
-      ..set('fromUser', currentUser.toPointer())
-      ..set('toUser', targetUser.toPointer())
+      ..set('fromUser', currentUser)
+      ..set('toUser', toUser)
       ..set('reason', reason)
-      ..set('status', status);
+      ..set('status', 'pending');
 
-    final response = await report.save();
-    return response.success;
+    final ParseResponse saveResponse = await report.save();
+
+    if (saveResponse.success) {
+      Get.snackbar("Reported", "Profile has been reported.",
+          backgroundColor: Colors.black87, colorText: Colors.white);
+    } else {
+      Get.snackbar("Error", "Failed to report profile.",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
+
+
+
+
 
 }

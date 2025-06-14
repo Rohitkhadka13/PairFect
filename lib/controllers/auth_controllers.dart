@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1701,30 +1702,30 @@ class AuthController extends GetxController {
   }
 
 //fetch and save user location
-  // Future<void> fetchAndSaveUserLocation() async {
+  Future<void> fetchAndSaveUserLocation() async {
 
-  //   LocationPermission permission = await Geolocator.checkPermission();
-  //   if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-  //     permission = await Geolocator.requestPermission();
-  //   }
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+    }
 
-  //   final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  //   final geoPoint = ParseGeoPoint(latitude: position.latitude, longitude: position.longitude);
+    final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    final geoPoint = ParseGeoPoint(latitude: position.latitude, longitude: position.longitude);
 
-  //   final currentUser = await ParseUser.currentUser() as ParseUser?;
-  //   if (currentUser == null) return;
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser == null) return;
 
-  //   final loginQuery = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
-  //     ..whereEqualTo('userPointer', currentUser);
+    final loginQuery = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+      ..whereEqualTo('userPointer', currentUser);
 
-  //   final result = await loginQuery.query();
+    final result = await loginQuery.query();
 
-  //   if (result.success && result.results != null && result.results!.isNotEmpty) {
-  //     final userLogin = result.results!.first;
-  //     userLogin.set('location', geoPoint);
-  //     await userLogin.save();
-  //   }
-  // }
+    if (result.success && result.results != null && result.results!.isNotEmpty) {
+      final userLogin = result.results!.first;
+      userLogin.set('location', geoPoint);
+      await userLogin.save();
+    }
+  }
 
   //fetch location from db
   Future<String?> fetchAndDisplayUserLocation() async {
@@ -1756,4 +1757,6 @@ class AuthController extends GetxController {
 
     return null;
   }
+
+
 }
