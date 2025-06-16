@@ -39,8 +39,13 @@ class ForYouPage extends StatelessWidget {
                   child: CachedNetworkImage(
                     imageUrl: profile['imageUrl'],
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                    width: double.infinity, // Fill available space
+                    height: double.infinity,
+                    memCacheWidth: (MediaQuery.of(context).size.width * 2).toInt(), // Cache at 2x resolution
+                    memCacheHeight: (MediaQuery.of(context).size.height * 2).toInt(),
+                    placeholder: (context, url) => Container(color: Colors.grey[300]), // Smoother than CircularProgressIndicator
+                    fadeInDuration: const Duration(milliseconds: 200), // Smooth fade-in
+                    errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.white),
                   ),
                 ),
                 Positioned.fill(

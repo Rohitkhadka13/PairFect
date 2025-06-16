@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
-
+import 'package:geocoding/geocoding.dart'as geo;
+import 'package:location/location.dart' as loc;
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -13,7 +11,6 @@ import 'package:pairfect/authScreen/nav_screen.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/height_screen.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../authScreen/login_screen.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -1701,16 +1698,33 @@ class AuthController extends GetxController {
     return isMutual;
   }
 
-//fetch and save user location
-  Future<void> fetchAndSaveUserLocation() async {
+//save location in db
+  final loc.Location location = loc.Location();
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      permission = await Geolocator.requestPermission();
+  Future<void> fetchAndSaveUserLocation() async {
+    bool _serviceEnabled;
+    loc.PermissionStatus _permissionGranted;
+
+    // Check service
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) return;
     }
 
-    final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    final geoPoint = ParseGeoPoint(latitude: position.latitude, longitude: position.longitude);
+    // Check permission
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == loc.PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != loc.PermissionStatus.granted) return;
+    }
+
+    // Get location
+    final currentLocation = await location.getLocation();
+    final geoPoint = ParseGeoPoint(
+      latitude: currentLocation.latitude!,
+      longitude: currentLocation.longitude!,
+    );
 
     final currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser == null) return;
@@ -1727,6 +1741,9 @@ class AuthController extends GetxController {
     }
   }
 
+
+
+
   //fetch location from db
   Future<String?> fetchAndDisplayUserLocation() async {
     final currentUser = await ParseUser.currentUser() as ParseUser?;
@@ -1737,14 +1754,12 @@ class AuthController extends GetxController {
 
     final result = await loginQuery.query();
 
-    if (result.success &&
-        result.results != null &&
-        result.results!.isNotEmpty) {
+    if (result.success && result.results != null && result.results!.isNotEmpty) {
       final userLogin = result.results!.first;
       final geoPoint = userLogin.get<ParseGeoPoint>('location');
       if (geoPoint == null) return null;
 
-      final placemarks = await placemarkFromCoordinates(
+      final placemarks = await geo.placemarkFromCoordinates(
         geoPoint.latitude!,
         geoPoint.longitude!,
       );

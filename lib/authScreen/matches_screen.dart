@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+
+import 'message_screen.dart';
 
 class YourMatchScreen extends StatefulWidget {
   const YourMatchScreen({super.key});
@@ -9,6 +13,7 @@ class YourMatchScreen extends StatefulWidget {
 }
 
 class _YourMatchScreenState extends State<YourMatchScreen> {
+
   Future<List<Map<String, dynamic>>> fetchProfiles() async {
     final currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser == null) return [];
@@ -87,6 +92,36 @@ class _YourMatchScreenState extends State<YourMatchScreen> {
     }
     return age;
   }
+
+
+  Future<ParseObject?> getOrCreateChatRoom(ParseUser sender, ParseUser receiver) async {
+    final query1 = QueryBuilder<ParseObject>(ParseObject('ChatRoom'))
+      ..whereEqualTo('sender', sender)
+      ..whereEqualTo('receiver', receiver);
+
+    final query2 = QueryBuilder<ParseObject>(ParseObject('ChatRoom'))
+      ..whereEqualTo('sender', receiver)
+      ..whereEqualTo('receiver', sender);
+
+    final res1 = await query1.query();
+    final res2 = await query2.query();
+
+    if (res1.success && res1.results != null && res1.results!.isNotEmpty) {
+      return res1.results!.first;
+    }
+
+    if (res2.success && res2.results != null && res2.results!.isNotEmpty) {
+      return res2.results!.first;
+    }
+
+    final newChatRoom = ParseObject('ChatRoom')
+      ..set('sender', sender)
+      ..set('receiver', receiver);
+
+    final saveRes = await newChatRoom.save();
+    return saveRes.success ? saveRes.results?.first : null;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -186,13 +221,27 @@ class _YourMatchScreenState extends State<YourMatchScreen> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  final currentUser = await ParseUser.currentUser() as ParseUser;
+                                  final matchedUser = profile['userPointer'] as ParseUser;
+
+                                  final chatRoom = await getOrCreateChatRoom(currentUser, matchedUser);
+
+                                  if (chatRoom != null) {
+                                    Get.to(() => ChatScreen(), arguments: {
+                                      'chatRoomId': chatRoom.objectId,
+                                      'receiverName': profile['name'] ?? 'User',
+                                    });
+                                  } else {
+                                    Get.snackbar("Error", "Failed to start chat.");
+                                  }
+                                },
                                 icon: Icon(Icons.message, color: Colors.white),
                                 label: Text("Send Message",
                                     style: TextStyle(color: Colors.white)),
                                 style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.pink,
-                              
+
                                 ),
                               ),
                             ),

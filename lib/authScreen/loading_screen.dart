@@ -52,7 +52,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           userProfile.get<bool>('isProfileComplete') ?? false;
 
 //save location
-      // await Get.find<AuthController>().fetchAndSaveUserLocation();
+       await Get.find<AuthController>().fetchAndSaveUserLocation();
       if (isProfileComplete) {
         Get.offAll(() => MainNavigationScreen(
               initialIndex: 0,
