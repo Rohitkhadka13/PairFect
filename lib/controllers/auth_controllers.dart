@@ -68,12 +68,6 @@ class AuthController extends GetxController {
     }
   }
 
-  String encryptPassword(String password) {
-    var bytes = utf8.encode(password);
-    var digest = sha256.convert(bytes);
-    return digest.toString();
-  }
-
   // SignUp User Using Email Password
   Future<void> signup({
     required String name,
@@ -91,8 +85,8 @@ class AuthController extends GetxController {
     try {
       // Check if the email already exists
       final QueryBuilder<ParseUser> query =
-          QueryBuilder<ParseUser>(ParseUser.forQuery())
-            ..whereEqualTo('email', email);
+      QueryBuilder<ParseUser>(ParseUser.forQuery())
+        ..whereEqualTo('email', email);
 
       final ParseResponse response = await query.query();
 
@@ -103,12 +97,9 @@ class AuthController extends GetxController {
         return;
       }
 
-      // Encrypt the password
-      String encryptedPassword = encryptPassword(password);
 
-      // Create a new Parse user
-      ParseUser user = ParseUser(email, encryptedPassword, email)
-        ..set('username', email) // Set email as username
+      ParseUser user = ParseUser(email, password, email)
+        ..set('username', email)
         ..set('email', email);
 
       final ParseResponse signUpResponse = await user.signUp();
@@ -159,20 +150,17 @@ class AuthController extends GetxController {
 
   Future<void> signIn({required String email, required String password}) async {
     try {
-      // Encrypt the password (same as during sign-up)
-      String encryptedPassword = encryptPassword(password);
 
-      // Sign in using Parse Server
-      ParseUser user = ParseUser(email, encryptedPassword, email);
+      ParseUser user = ParseUser(email, password, email);
       final ParseResponse response = await user.login();
 
       if (response.success) {
         await prefs.setString('sessionToken', user.sessionToken!);
 
-        // Fetch the user's data from the UserLogin table
+
         final QueryBuilder<ParseObject> userLoginQuery =
-            QueryBuilder<ParseObject>(ParseObject('UserLogin'))
-              ..whereEqualTo('userPointer', user.toPointer());
+        QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+          ..whereEqualTo('userPointer', user.toPointer());
 
         final ParseResponse userLoginResponse = await userLoginQuery.query();
 
@@ -183,8 +171,8 @@ class AuthController extends GetxController {
 
           if (isProfileComplete) {
             Get.offAll(() => MainNavigationScreen(
-                  initialIndex: 0,
-                ));
+              initialIndex: 0,
+            ));
           } else {
             Get.offAll(() => HeightScreen());
           }
@@ -1773,5 +1761,61 @@ class AuthController extends GetxController {
     return null;
   }
 
+  //edit profile in db
+
+  var userImageUrl = ''.obs;
+  Future<void> updateProfileWithPasswordCheck({
+    required String name,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+
+      if (currentUser == null) {
+        Get.snackbar("Error", "No user logged in.");
+        return;
+      }
+
+      // Verify current password
+      final loginTestUser = ParseUser(currentUser.username, currentPassword, null);
+      final loginResponse = await loginTestUser.login();
+
+      if (!loginResponse.success) {
+        Get.snackbar("Error", "Current password is incorrect.");
+        return;
+      }
+
+      // Update UserLogin class
+      final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+        ..whereEqualTo('userPointer', currentUser.toPointer());
+
+      final response = await query.query();
+
+      if (response.success && response.results != null && response.results!.isNotEmpty) {
+        final userProfile = response.results!.first;
+
+        userProfile.set<String>('name', name);
+
+        if (pickedFile.value != null) {
+          final parseFile = ParseFile(pickedFile.value!);
+          await parseFile.save();
+          userProfile.set<ParseFile>('imageProfile', parseFile);
+        }
+
+        await userProfile.save();
+
+        // Change password
+        currentUser.password = newPassword;
+        await currentUser.save();
+
+        Get.snackbar("Success", "Profile updated successfully.");
+      } else {
+        Get.snackbar("Error", "User profile not found.");
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Update failed: $e");
+    }
+  }
 
 }

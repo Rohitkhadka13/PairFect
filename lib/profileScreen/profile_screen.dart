@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
+import 'package:pairfect/profileScreen/about_us_screen.dart';
 import 'package:pairfect/profileScreen/complete_profile.dart';
+import 'package:pairfect/profileScreen/moreAboutYou/edit_profile.dart';
+import 'package:pairfect/profileScreen/privacy&policy_screen.dart';
+import 'package:pairfect/profileScreen/terms_screen.dart';
 import '../controllers/auth_controllers.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -161,15 +165,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               children: [
-                _settingsRow("Edit Name", Icons.arrow_forward_ios),
+                GestureDetector(
+                    onTap:(){
+                      Get.to(()=>EditProfile());
+                    },
+                    child: _settingsRow("Edit Profile", Icons.arrow_forward_ios)),
                 const Divider(),
-                _settingsRow("About Us", Icons.arrow_forward_ios),
+                GestureDetector(
+                    onTap: (){
+                      Get.to(()=> AboutUsScreen());
+                    },
+                    child: _settingsRow("About Us", Icons.arrow_forward_ios)),
                 const Divider(),
-                _settingsRow("Privacy & Policy", Icons.arrow_forward_ios),
+                GestureDetector(
+                    onTap: (){
+                      Get.to(()=> PrivacyAndPolicyScreen());
+                    },
+                    child: _settingsRow("Privacy & Policy", Icons.arrow_forward_ios)),
                 const Divider(),
 
 
-                _settingsRow("Terms & Conditions", Icons.description),
+                GestureDetector(
+                    onTap: (){
+                      Get.to(()=> TermsAndConditionScreen());
+                    },
+                    child: _settingsRow("Terms & Conditions", Icons.description)),
                 const Divider(),
                 _settingsRow("App Version", Icons.info),
                 const Divider(),
