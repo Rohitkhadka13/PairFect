@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
@@ -10,52 +12,111 @@ class ProfileController extends GetxController {
     super.onInit();
     fetchProfiles();
   }
+  double calculateDistanceMiles(
+      double lat1, double lon1, double lat2, double lon2)
+  {
+    const earthRadius = 3958.8; // in miles
+    final dLat = _degToRad(lat2 - lat1);
+    final dLon = _degToRad(lon2 - lon1);
 
-  Future<void> fetchProfiles() async {
+    final a =
+        (sin(dLat / 2) * sin(dLat / 2)) +
+            cos(_degToRad(lat1)) * cos(_degToRad(lat2)) *
+                (sin(dLon / 2) * sin(dLon / 2));
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadius * c;
+  }
+
+  double _degToRad(double deg) => deg * (pi / 180);
+
+
+  Future<void> fetchProfiles({int? ageStart, int? ageEnd, String? gender, int? locationMiles}) async {
     final currentUser = await ParseUser.currentUser() as ParseUser?;
     if (currentUser == null) return;
 
-    final interactionQuery =
-    QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
+    final currentLoginQuery = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+      ..whereEqualTo('userPointer', currentUser);
+    final currentLoginResult = await currentLoginQuery.first();
+    final userLocation = currentLoginResult?.get<ParseGeoPoint>('location');
+    final userDOB = currentLoginResult?.get<DateTime>('dob');
+
+    if (userLocation == null || userDOB == null) return;
+
+    final interactionQuery = QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
       ..whereEqualTo('fromUser', currentUser);
-    final interactionResults = await interactionQuery.find();
+    final interactionResponse = await interactionQuery.query();
 
     final interactedUserPointers = <ParseUser>{};
-    for (final interaction in interactionResults) {
-      final toUser = interaction.get<ParseUser>('toUser');
-      if (toUser != null) interactedUserPointers.add(toUser);
+    if (interactionResponse.success && interactionResponse.results != null) {
+      for (final interaction in interactionResponse.results!) {
+        final toUser = interaction.get<ParseUser>('toUser');
+        if (toUser != null) interactedUserPointers.add(toUser);
+      }
     }
 
     final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
       ..whereNotEqualTo('userPointer', currentUser)
       ..whereEqualTo('isProfileComplete', true)
-      ..setLimit(10);
+      ..setLimit(20);
 
     if (interactedUserPointers.isNotEmpty) {
       query.whereNotContainedIn('userPointer', interactedUserPointers.toList());
     }
 
-    final results = await query.find();
-    results.shuffle();
-    final selected = results.take(5).toList();
+    if (gender != null && gender != "All") {
+      final basicQuery = QueryBuilder<ParseObject>(ParseObject('Basic'))
+        ..whereEqualTo('Gender', gender);
 
-    final fetchedProfiles = <Map<String, dynamic>>[];
+      final basicResult = await basicQuery.query();
+      final genderMatchedUsers = basicResult.results
+          ?.map((obj) => obj.get<ParseUser>('userPointer'))
+          .whereType<ParseUser>()
+          .toList();
 
-    for (final object in selected) {
+      if (genderMatchedUsers != null && genderMatchedUsers.isNotEmpty) {
+        query.whereContainedIn('userPointer', genderMatchedUsers);
+      }
+    }
+
+    final resultsResponse = await query.query();
+    if (!resultsResponse.success || resultsResponse.results == null) {
+      profiles.value = [];
+      return;
+    }
+
+    final List<Map<String, dynamic>> fetchedProfiles = [];
+
+    for (final object in resultsResponse.results!) {
       final userPointer = object.get<ParseUser>('userPointer');
       final dob = object.get<DateTime>('dob');
       final imageFile = object.get<ParseFile>('imageProfile');
+      final targetLocation = object.get<ParseGeoPoint>('location');
+
+      if (dob == null || targetLocation == null) continue;
+
+      final age = DateTime.now().year - dob.year;
+      final distanceMiles = calculateDistanceMiles(
+        userLocation.latitude,
+        userLocation.longitude,
+        targetLocation.latitude,
+        targetLocation.longitude,
+      );
+
+      // Filter by age
+      if (ageStart != null && ageEnd != null && (age < ageStart || age > ageEnd)) continue;
+
+      // Filter by location
+      if (locationMiles != null && distanceMiles > locationMiles) continue;
+
+      // aboutYou data
+      String? religion, zodiac, height, exercise, politics, smoking, drinking;
+      List<String> lookingFor = [];
 
       final aboutQuery = QueryBuilder<ParseObject>(ParseObject('aboutYou'))
         ..whereEqualTo('userPointer', userPointer);
       final aboutResult = await aboutQuery.query();
 
-      String? religion, zodiac, height, exercise, politics, smoking, drinking;
-      List<String> lookingFor = [];
-
-      if (aboutResult.success &&
-          aboutResult.results != null &&
-          aboutResult.results!.isNotEmpty) {
+      if (aboutResult.success && aboutResult.results != null && aboutResult.results!.isNotEmpty) {
         final about = aboutResult.results!.first;
         religion = about.get<String>('Religion');
         zodiac = about.get<String>('Zodiac');
@@ -67,16 +128,14 @@ class ProfileController extends GetxController {
         lookingFor = List<String>.from(about.get<List>('lookingFor') ?? []);
       }
 
+      // Basic gender
+      String? genderFromBasic;
       final basicQuery = QueryBuilder<ParseObject>(ParseObject('Basic'))
         ..whereEqualTo('userPointer', userPointer);
       final basicResult = await basicQuery.query();
 
-      String? gender;
-      if (basicResult.success &&
-          basicResult.results != null &&
-          basicResult.results!.isNotEmpty) {
-        final basic = basicResult.results!.first;
-        gender = basic.get<String>('Gender');
+      if (basicResult.success && basicResult.results != null && basicResult.results!.isNotEmpty) {
+        genderFromBasic = basicResult.results!.first.get<String>('Gender');
       }
 
       fetchedProfiles.add({
@@ -90,14 +149,19 @@ class ProfileController extends GetxController {
         'politics': politics,
         'smoking': smoking,
         'drinking': drinking,
-        'gender': gender,
+        'gender': genderFromBasic,
         'lookingFor': lookingFor,
         'userPointer': userPointer,
+        'distance': distanceMiles.toStringAsFixed(1),
       });
     }
 
-    profiles.value = fetchedProfiles;
+    fetchedProfiles.shuffle();
+    profiles.value = fetchedProfiles.take(5).toList();
   }
+
+
+
 
 
   Future<bool> interactWithUser(ParseUser targetUser, String action) async {
