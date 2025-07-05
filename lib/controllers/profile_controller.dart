@@ -6,7 +6,12 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 class ProfileController extends GetxController {
   var profiles = <Map<String, dynamic>>[].obs;
+  final PageController pageController = PageController();
+  final RxInt currentIndex = 0.obs;
 
+  void setCurrentIndex(int index) {
+    currentIndex.value = index;
+  }
   @override
   void onInit() {
     super.onInit();
@@ -15,7 +20,7 @@ class ProfileController extends GetxController {
   double calculateDistanceMiles(
       double lat1, double lon1, double lat2, double lon2)
   {
-    const earthRadius = 3958.8; // in miles
+    const earthRadius = 3958.8; 
     final dLat = _degToRad(lat2 - lat1);
     final dLon = _degToRad(lon2 - lon1);
 
@@ -197,7 +202,7 @@ class ProfileController extends GetxController {
     return isMatch;
   }
 
-  Future<void> reportUser(ParseObject toUser, String reason) async {
+  Future<void> reportUser(ParseObject toUser, String reason, {required String detail}) async {
     final currentUser = await ParseUser.currentUser() as ParseUser;
 
     final query = QueryBuilder<ParseObject>(ParseObject('Reports'))
@@ -216,6 +221,7 @@ class ProfileController extends GetxController {
       ..set('fromUser', currentUser)
       ..set('toUser', toUser)
       ..set('reason', reason)
+      ..set('details', detail)
       ..set('status', 'pending');
 
     final ParseResponse saveResponse = await report.save();
@@ -228,6 +234,7 @@ class ProfileController extends GetxController {
           backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
+
 
 
 

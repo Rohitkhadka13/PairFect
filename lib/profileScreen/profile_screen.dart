@@ -6,6 +6,7 @@ import 'package:pairfect/profileScreen/complete_profile.dart';
 import 'package:pairfect/profileScreen/moreAboutYou/edit_profile.dart';
 import 'package:pairfect/profileScreen/privacy&policy_screen.dart';
 import 'package:pairfect/profileScreen/terms_screen.dart';
+import 'package:pairfect/quiz_mood/matching_screen.dart';
 import '../controllers/auth_controllers.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -64,17 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text("PairFect Profile"),
         centerTitle: true,
         elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.settings,
-                  size: 30,
-                )),
-          )
-        ],
+
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Divider(),
                 GestureDetector(
                     onTap: (){
-                      Get.to(()=> PrivacyAndPolicyScreen());
+                      Get.to(()=> MatchingHomeScreen());
                     },
                     child: _settingsRow("Privacy & Policy", Icons.arrow_forward_ios)),
                 const Divider(),

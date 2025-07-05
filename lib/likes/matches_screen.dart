@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
-import 'message_screen.dart';
+import '../chats/message_screen.dart';
 
 class YourMatchScreen extends StatefulWidget {
   const YourMatchScreen({super.key});

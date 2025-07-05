@@ -406,16 +406,15 @@ class AuthController extends GetxController {
 //logout User
   Future<void> logout() async {
     try {
-      // Get the current user
+
       final user = await ParseUser.currentUser() as ParseUser?;
 
       if (user != null) {
         final ParseResponse response = await user.logout();
 
         if (response.success) {
-          await prefs.remove('sessionToken');
+          await prefs.clear();
 
-          // Navigate to the LoginScreen
           Get.offAll(() => LoginScreen());
         } else {
           Get.snackbar(

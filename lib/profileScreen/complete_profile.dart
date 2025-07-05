@@ -102,7 +102,6 @@ class _CompleteProfileState extends State<CompleteProfile> {
       },
       "gender": () async =>
           (await _authController.getUserGender())?["gender"] ?? "Add",
-      //  "location":() async => await _authController.fetchAndDisplayUserLocation()??"Add",
       "height": () async => await _authController.fetchHeight() ?? "Add",
       "exercise": () => _authController.loadExercise(),
       "drinking": () => _authController.loadDrinkingHabits(),

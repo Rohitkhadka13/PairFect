@@ -14,7 +14,8 @@ class ForYouPage extends StatelessWidget {
     if (dob == null) return 0;
     final now = DateTime.now();
     int age = now.year - dob.year;
-    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
       age--;
     }
     return age;
@@ -29,30 +30,66 @@ class ForYouPage extends StatelessWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.black),
             onSelected: (value) async {
-            if (value == 'report_user') {
-                final profile = controller.profiles.isNotEmpty ? controller.profiles[0] : null;
+              if (value == 'report_user') {
+                final profileIndex = controller.currentIndex.value;
+                final profile = controller.profiles.isNotEmpty &&
+                    profileIndex < controller.profiles.length
+                    ? controller.profiles[profileIndex]
+                    : null;
+
                 if (profile != null) {
                   String selectedReason = 'Inappropriate Content';
+                  String selectedDetail = '';
+
+                  final Map<String, List<String>> detailsMap = {
+                    'Inappropriate Content': ['Offensive Photo', 'Nudity', 'Violence'],
+                    'Spam': ['Repeated Messages', 'Suspicious Links', 'Fake Offers'],
+                    'Fake Profile': ['Fake Name', 'Fake Photo', 'Pretending to be Someone'],
+                    'Harassment': ['Threats', 'Abuse', 'Stalking'],
+                    'Other': ['Not Relevant to App', 'Other Reason'],
+                  };
+
                   Get.dialog(
                     StatefulBuilder(
                       builder: (context, setState) => AlertDialog(
                         title: const Text('Report User'),
-                        content: DropdownButton<String>(
-                          isExpanded: true,
-                          value: selectedReason,
-                          items: [
-                            'Inappropriate Content',
-                            'Spam',
-                            'Fake Profile',
-                            'Harassment',
-                            'Other',
-                          ].map((reason) => DropdownMenuItem(
-                            value: reason,
-                            child: Text(reason),
-                          )).toList(),
-                          onChanged: (value) => setState(() {
-                            selectedReason = value!;
-                          }),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DropdownButton<String>(
+                              isExpanded: true,
+                              value: selectedReason,
+                              items: detailsMap.keys.map((reason) {
+                                return DropdownMenuItem(
+                                  value: reason,
+                                  child: Text(reason),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedReason = value!;
+                                  selectedDetail = '';
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            DropdownButton<String>(
+                              isExpanded: true,
+                              hint: const Text('Select detail'),
+                              value: selectedDetail.isEmpty ? null : selectedDetail,
+                              items: detailsMap[selectedReason]!.map((detail) {
+                                return DropdownMenuItem(
+                                  value: detail,
+                                  child: Text(detail),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedDetail = value!;
+                                });
+                              },
+                            ),
+                          ],
                         ),
                         actions: [
                           TextButton(
@@ -61,8 +98,16 @@ class ForYouPage extends StatelessWidget {
                           ),
                           TextButton(
                             onPressed: () {
+                              if (selectedDetail.isEmpty) {
+                                Get.snackbar("Missing Detail", "Please select a specific detail.");
+                                return;
+                              }
                               Get.back();
-                              controller.reportUser(profile['userPointer'], selectedReason);
+                              controller.reportUser(
+                                profile['userPointer'],
+                                selectedReason,
+                                detail: selectedDetail,
+                              );
                             },
                             child: const Text('Submit'),
                           ),
@@ -85,18 +130,13 @@ class ForYouPage extends StatelessWidget {
                   );
                 }
               }
-
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'change_location',
-                child: Text('Change Location'),
-              ),
-              const PopupMenuItem(
+            itemBuilder: (context) => const [
+              PopupMenuItem(
                 value: 'report_user',
                 child: Text('Report User'),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'filters',
                 child: Text('Filters'),
               ),
@@ -156,8 +196,11 @@ class ForYouPage extends StatelessWidget {
           );
         }
 
-
         return PageView.builder(
+          controller: controller.pageController,
+          onPageChanged: (index) {
+            controller.currentIndex.value = index;
+          },
           scrollDirection: Axis.vertical,
           itemCount: controller.profiles.length,
           itemBuilder: (context, index) {
@@ -221,18 +264,23 @@ class ForYouPage extends StatelessWidget {
                           ],
                         ),
                       ],
-
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 10,
                         runSpacing: 8,
                         children: [
-                          if (profile['zodiac'] != null) buildTag(profile['zodiac'], FontAwesomeIcons.star),
-                          if (profile['religion'] != null) buildTag(profile['religion'], FontAwesomeIcons.cross),
-                          if (profile['height'] != null) buildTag(profile['height'], FontAwesomeIcons.rulerVertical),
-                          if (profile['exercise'] != null) buildTag(profile['exercise'], FontAwesomeIcons.dumbbell),
-                          if (profile['politics'] != null) buildTag(profile['politics'], FontAwesomeIcons.landmark),
-                          if (profile['gender'] != null) buildTag(profile['gender'], FontAwesomeIcons.venusMars),
+                          if (profile['zodiac'] != null)
+                            buildTag(profile['zodiac'], FontAwesomeIcons.star),
+                          if (profile['religion'] != null)
+                            buildTag(profile['religion'], FontAwesomeIcons.cross),
+                          if (profile['height'] != null)
+                            buildTag(profile['height'], FontAwesomeIcons.rulerVertical),
+                          if (profile['exercise'] != null)
+                            buildTag(profile['exercise'], FontAwesomeIcons.dumbbell),
+                          if (profile['politics'] != null)
+                            buildTag(profile['politics'], FontAwesomeIcons.landmark),
+                          if (profile['gender'] != null)
+                            buildTag(profile['gender'], FontAwesomeIcons.venusMars),
                           if (profile['smoking'] != null)
                             buildTag(getSmokingDisplayText(profile['smoking']), FontAwesomeIcons.smoking),
                           if (profile['drinking'] != null)

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pairfect/authScreen/likesyou_screen.dart';
-import 'package:pairfect/authScreen/matches_screen.dart';
+import 'package:pairfect/likes/likesyou_screen.dart';
+import 'package:pairfect/likes/matches_screen.dart';
 
 class LikeScreen extends StatefulWidget {
   const LikeScreen({super.key});

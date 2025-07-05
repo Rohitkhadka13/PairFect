@@ -15,92 +15,130 @@ class PeopleScreen extends StatefulWidget {
 }
 
 class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMixin {
-  bool isProcessingSwipe = false;
-  String? myImageUrl;
-  List<Map<String, dynamic>> profiles = [];
-  final AuthController authController = Get.find();
-  final CardController _controller = CardController();
+  static const _cardAspectRatio = 0.9;
+  static const _stackNum = 3;
+  static const _buttonIconSize = 40.0;
+  static const _buttonShadowBlur = 10.0;
+  static const _buttonShadowAlpha = 51;
+  static const _matchDelay = Duration(milliseconds: 300);
+
+  final _cardController = CardController();
+  final _authController = Get.find<AuthController>();
+
+  List<Map<String, dynamic>> _profiles = [];
+  String? _myImageUrl;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchProfiles();
-    preloadMyImage();
+    _initializeData();
   }
 
-  Future<void> fetchProfiles() async {
+  Future<void> _initializeData() async {
+    await Future.wait([
+      _fetchProfiles(),
+      _preloadMyImage(),
+    ]);
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _fetchProfiles() async {
     try {
       final currentUser = await ParseUser.currentUser() as ParseUser?;
       if (currentUser == null) return;
 
-      final interactionQuery = QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
-        ..whereEqualTo('fromUser', currentUser);
-      final interactionResults = await interactionQuery.find();
+      final results = await Future.wait([
+        _getInteractedUsers(currentUser),
+        _getAllProfiles(currentUser),
+      ]);
 
-      final interactedUserPointers = <ParseUser>{};
+      final Set<String> interactedUsers = results[0] as Set<String>;
+      final List<ParseObject> allProfiles = results[1] as List<ParseObject>;
 
-      for (final interaction in interactionResults) {
-        final toUser = interaction.get<ParseUser>('toUser');
-        if (toUser != null) interactedUserPointers.add(toUser);
+      final filteredProfiles = allProfiles.where((profile) {
+        final userPointer = profile.get<ParseUser>('userPointer');
+        return !interactedUsers.contains(userPointer?.objectId);
+      }).toList();
+
+      final profiles = await Future.wait(
+        filteredProfiles.map(_parseProfileData),
+      );
+
+      if (mounted) {
+        setState(() => _profiles = profiles.whereType<Map<String, dynamic>>().toList());
       }
-
-      final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
-        ..whereNotEqualTo('userPointer', currentUser)
-        ..whereEqualTo('isProfileComplete', true);
-
-      if (interactedUserPointers.isNotEmpty) {
-        query.whereNotContainedIn('userPointer', interactedUserPointers.toList());
-      }
-
-      final results = await query.find();
-      final fetchedProfiles = <Map<String, dynamic>>[];
-
-      for (final object in results) {
-        final userPointer = object.get<ParseUser>('userPointer');
-        final dob = object.get<DateTime>('dob');
-        final imageFile = object.get<ParseFile>('imageProfile');
-
-        String? gender;
-        bool showOnProfile = false;
-
-        final basicQuery = QueryBuilder<ParseObject>(ParseObject('Basic'))
-          ..whereEqualTo('userPointer', userPointer);
-        final basicResult = await basicQuery.query();
-
-        if (basicResult.success && basicResult.results != null && basicResult.results!.isNotEmpty) {
-          final basic = basicResult.results!.first;
-          showOnProfile = basic.get<bool>('showOnProfile') ?? false;
-          if (showOnProfile) {
-            gender = basic.get<String>('Gender');
-          }
-        }
-
-        final imageUrl = imageFile?.url ?? '';
-        fetchedProfiles.add({
-          'name': object.get<String>('name') ?? '',
-          'dob': dob,
-          'imageUrl': imageUrl,
-          'gender': gender,
-          'showOnProfile': showOnProfile,
-          'userPointer': userPointer,
-        });
-
-        if (imageUrl.isNotEmpty) {
-          precacheImage(NetworkImage(imageUrl), context);
-        }
-      }
-
-      setState(() {
-        profiles = fetchedProfiles;
-      });
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error fetching profiles: $e');
+    }
   }
 
-  void preloadMyImage() async {
-    myImageUrl = await authController.fetchUserImage();
+  Future<Set<String>> _getInteractedUsers(ParseUser currentUser) async {
+    final query = QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
+      ..whereEqualTo('fromUser', currentUser);
+    final results = await query.find();
+    return results
+        .map((e) => e.get<ParseUser>('toUser')?.objectId)
+        .whereType<String>()
+        .toSet();
   }
 
-  int calculateAge(DateTime dob) {
+  Future<List<ParseObject>> _getAllProfiles(ParseUser currentUser) async {
+    final query = QueryBuilder<ParseObject>(ParseObject('UserLogin'))
+      ..whereNotEqualTo('userPointer', currentUser)
+      ..whereEqualTo('isProfileComplete', true);
+    return await query.find();
+  }
+
+  Future<Map<String, dynamic>?> _parseProfileData(ParseObject object) async {
+    try {
+      final userPointer = object.get<ParseUser>('userPointer');
+      if (userPointer == null) return null;
+
+      final basicData = await _getBasicData(userPointer);
+      final imageFile = object.get<ParseFile>('imageProfile');
+      final imageUrl = imageFile?.url ?? '';
+
+      if (imageUrl.isNotEmpty) {
+        precacheImage(NetworkImage(imageUrl), context);
+      }
+
+      return {
+        'name': object.get<String>('name') ?? '',
+        'dob': object.get<DateTime>('dob'),
+        'imageUrl': imageUrl,
+        'gender': basicData['gender'],
+        'showOnProfile': basicData['showOnProfile'],
+        'userPointer': userPointer,
+      };
+    } catch (e) {
+      debugPrint('Error parsing profile: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> _getBasicData(ParseUser userPointer) async {
+    final query = QueryBuilder<ParseObject>(ParseObject('Basic'))
+      ..whereEqualTo('userPointer', userPointer);
+    final result = await query.query();
+
+    if (!result.success || result.results == null || result.results!.isEmpty) {
+      return {'gender': null, 'showOnProfile': false};
+    }
+
+    final basic = result.results!.first;
+    return {
+      'gender': basic.get<String>('Gender'),
+      'showOnProfile': basic.get<bool>('showOnProfile') ?? false,
+    };
+  }
+
+  Future<void> _preloadMyImage() async {
+    _myImageUrl = await _authController.fetchUserImage();
+  }
+
+  int? _calculateAge(DateTime? dob) {
+    if (dob == null) return null;
     final today = DateTime.now();
     int age = today.year - dob.year;
     if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
@@ -109,8 +147,59 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
     return age;
   }
 
+  Future<void> _handleSwipe(CardSwipeOrientation orientation, int index) async {
+    if (index >= _profiles.length) return;
+
+    final profile = _profiles[index];
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+    if (currentUser == null) return;
+
+    final interactionType = _getInteractionType(orientation);
+    if (interactionType == null) return;
+
+    final isMatch = await _authController.saveInteraction(
+      fromUser: currentUser,
+      toUser: profile['userPointer'] as ParseUser,
+      interactionType: interactionType,
+    );
+
+    if (isMatch && mounted) {
+      Future.delayed(_matchDelay, () => _navigateToMatchScreen(profile, interactionType));
+    }
+
+    if (mounted) {
+      setState(() => _profiles.removeAt(index));
+    }
+  }
+
+  String? _getInteractionType(CardSwipeOrientation orientation) {
+    return switch (orientation) {
+      CardSwipeOrientation.right => 'like',
+      CardSwipeOrientation.up => 'superlike',
+      _ => null,
+    };
+  }
+
+  void _navigateToMatchScreen(Map<String, dynamic> profile, String interactionType) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MatchScreen(
+          myImageUrl: _myImageUrl ?? "",
+          imageUrl: profile["imageUrl"] ?? '',
+          matchedUserName: profile['name'] ?? '',
+          interactionType: interactionType,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final cardWidth = size.width * _cardAspectRatio;
+    final cardHeight = size.height * 0.8;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -124,189 +213,138 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
       body: Column(
         children: [
           Expanded(
-            child: profiles.isNotEmpty
-                ? TinderSwapCard(
-              swipeUp: true,
-              swipeDown: false,
-              orientation: AmassOrientation.top,
-              totalNum: profiles.length,
-              stackNum: 3,
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
-              maxHeight: MediaQuery.of(context).size.height * 0.8,
-              minWidth: MediaQuery.of(context).size.width * 0.8,
-              minHeight: MediaQuery.of(context).size.height * 0.7,
-              cardBuilder: (context, index) {
-                final profile = profiles[index];
-                final name = profile['name'] as String;
-                final imageUrl = profile['imageUrl'] as String?;
-                final dob = profile['dob'] as DateTime?;
-                final age = dob != null ? calculateAge(dob) : null;
-                final gender = profile['gender'] as String?;
-                final showOnProfile = profile['showOnProfile'] as bool?;
-
-                return Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: imageUrl != null && imageUrl.isNotEmpty
-                          ? FadeInImage.assetNetwork(
-                        placeholder: 'assets/images/profile_avatar.jpg',
-                        image: imageUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                      )
-                          : Image.asset(
-                        'assets/images/profile_avatar.jpg',
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 20,
-                      left: 20,
-                      child: Text(
-                        "$name, ${age ?? 'N/A'}",
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              blurRadius: 10.0,
-                              color: Colors.black,
-                              offset: Offset(2, 2),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (showOnProfile ?? false)
-                      Positioned(
-                        bottom: 50,
-                        left: 20,
-                        child: Text(
-                          gender ?? '',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                blurRadius: 10.0,
-                                color: Colors.black,
-                                offset: Offset(2, 2),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
-              cardController: _controller,
-              swipeCompleteCallback: (CardSwipeOrientation orientation, int index) async {
-                if (index >= profiles.length) return;
-
-                final profile = profiles[index];
-                final toUser = profile['userPointer'] as ParseUser;
-                final currentUser = await ParseUser.currentUser() as ParseUser?;
-                if (currentUser == null) return;
-
-                String? interactionType;
-                if (orientation == CardSwipeOrientation.right) {
-                  interactionType = 'like';
-                } else if (orientation == CardSwipeOrientation.up) {
-                  interactionType = 'superlike';
-                }
-
-                if (interactionType != null) {
-                  final isMatch = await authController.saveInteraction(
-                    fromUser: currentUser,
-                    toUser: toUser,
-                    interactionType: interactionType,
-                  );
-
-                  if (isMatch) {
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MatchScreen(
-                            myImageUrl: myImageUrl ?? "",
-                            imageUrl: profile["imageUrl"] ?? '',
-                            matchedUserName: profile['name'] ?? '',
-                            interactionType: interactionType ?? "",
-                          ),
-                        ),
-                      );
-                    });
-                  }
-                }
-
-                if (mounted) {
-                  setState(() {
-                    profiles.removeAt(index);
-                  });
-                }
-              },
-            )
-                : Center(
-              child: Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
-                child: ListView.builder(
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        height: 150,
-                        color: Colors.white,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
+            child: _isLoading
+                ? _buildShimmerLoader()
+                : _profiles.isNotEmpty
+                ? _buildTinderCards(cardWidth, cardHeight)
+                : _buildEmptyState(),
           ),
-          if (profiles.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildIconButton(
-                    icon: Icons.close,
-                    color: Colors.red,
-                    onPressed: () {
-                      _controller.triggerLeft();
-                    },
-                  ),
-                  _buildIconButton(
-                    icon: Icons.star,
-                    color: Colors.blue,
-                    onPressed: () {
-                      _controller.triggerUp();
-                    },
-                  ),
-                  _buildIconButton(
-                    icon: Icons.favorite,
-                    color: Colors.green,
-                    onPressed: () {
-                      _controller.triggerRight();
-                    },
-                  ),
-                ],
-              ),
-            ),
+          if (_profiles.isNotEmpty) _buildActionButtons(),
         ],
       ),
     );
   }
 
-  Widget _buildIconButton({
+  Widget _buildShimmerLoader() {
+    return Center(
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: ListView.builder(
+          itemCount: 5,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(height: 150, color: Colors.white),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTinderCards(double width, double height) {
+    return TinderSwapCard(
+      swipeUp: true,
+      swipeDown: false,
+      orientation: AmassOrientation.top,
+      totalNum: _profiles.length,
+      stackNum: _stackNum,
+      maxWidth: width,
+      maxHeight: height,
+      minWidth: width * 0.9,
+      minHeight: height * 0.9,
+      cardBuilder: (context, index) => _buildProfileCard(_profiles[index]),
+      cardController: _cardController,
+      swipeCompleteCallback: _handleSwipe,
+    );
+  }
+
+  Widget _buildProfileCard(Map<String, dynamic> profile) {
+    final name = profile['name'] as String;
+    final imageUrl = profile['imageUrl'] as String?;
+    final age = _calculateAge(profile['dob'] as DateTime?);
+    final gender = profile['gender'] as String?;
+    final showOnProfile = profile['showOnProfile'] as bool?;
+
+    return Stack(
+      children: [
+        _buildProfileImage(imageUrl),
+        Positioned(
+          bottom: 20,
+          left: 20,
+          child: Text(
+            "$name, ${age ?? 'N/A'}",
+            style: _profileTextStyle,
+          ),
+        ),
+        if (showOnProfile ?? false)
+          Positioned(
+            bottom: 50,
+            left: 20,
+            child: Text(
+              gender ?? '',
+              style: _profileTextStyle.copyWith(fontSize: 22, fontWeight: FontWeight.w600),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildProfileImage(String? imageUrl) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: imageUrl != null && imageUrl.isNotEmpty
+          ? FadeInImage.assetNetwork(
+        placeholder: 'assets/images/profile_avatar.jpg',
+        image: imageUrl,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+      )
+          : Image.asset(
+        'assets/images/profile_avatar.jpg',
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Text(
+        'No more profiles to show',
+        style: TextStyle(fontSize: 18, color: Colors.grey),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildSwipeButton(
+            icon: Icons.close,
+            color: Colors.red,
+            onPressed: () => _cardController.triggerLeft(),
+          ),
+          _buildSwipeButton(
+            icon: Icons.star,
+            color: Colors.blue,
+            onPressed: () => _cardController.triggerUp(),
+          ),
+          _buildSwipeButton(
+            icon: Icons.favorite,
+            color: Colors.green,
+            onPressed: () => _cardController.triggerRight(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwipeButton({
     required IconData icon,
     required Color color,
     required VoidCallback onPressed,
@@ -314,20 +352,33 @@ class _PeopleScreenState extends State<PeopleScreen> with TickerProviderStateMix
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withAlpha(51),
+        color: color.withAlpha(_buttonShadowAlpha),
         boxShadow: [
           BoxShadow(
             color: color.withAlpha(128),
-            blurRadius: 10,
+            blurRadius: _buttonShadowBlur,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: IconButton(
         icon: Icon(icon, color: color),
-        iconSize: 40,
+        iconSize: _buttonIconSize,
         onPressed: onPressed,
       ),
     );
   }
+
+  TextStyle get _profileTextStyle => const TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+    shadows: [
+      Shadow(
+        blurRadius: 10.0,
+        color: Colors.black,
+        offset: Offset(2, 2),
+      ),
+    ],
+  );
 }

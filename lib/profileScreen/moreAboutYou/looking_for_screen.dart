@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pairfect/authScreen/nav_screen.dart';
 import 'package:pairfect/profileScreen/profile_screen.dart';
 
 import '../../controllers/auth_controllers.dart';
@@ -60,8 +61,7 @@ class _LookingForScreenState extends State<LookingForScreen> {
     }
     await authController.saveLookingFor(selectedOptions);
 
-    Get.offAll(() => ProfileScreen());
-  }
+    Get.offAll(() => MainNavigationScreen(initialIndex: 0));  }
 
   void _handleCheckboxSelection(int index) {
     setState(() {

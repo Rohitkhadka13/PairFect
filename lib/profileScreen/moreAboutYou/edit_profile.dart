@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:pairfect/profileScreen/profile_screen.dart';
 import 'dart:io';
 
+import '../../authScreen/nav_screen.dart';
 import '../../controllers/auth_controllers.dart';
 
 class EditProfile extends StatefulWidget {
@@ -90,7 +91,7 @@ class _EditProfileState extends State<EditProfile> {
               ),
               const SizedBox(height: 25),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async{
                   final name = nameController.text.trim();
                   final currentPassword = currentPasswordController.text.trim();
                   final newPassword = newPasswordController.text.trim();
@@ -100,12 +101,12 @@ class _EditProfileState extends State<EditProfile> {
                     return;
                   }
 
-                  authController.updateProfileWithPasswordCheck(
+                 await authController.updateProfileWithPasswordCheck(
                     name: name,
                     currentPassword: currentPassword,
                     newPassword: newPassword,
                   );
-                  Get.offAll(()=>ProfileScreen());
+                  Get.offAll(() => MainNavigationScreen(initialIndex: 0));
                 },
                 child: const Text("Save Changes"),
               ),
