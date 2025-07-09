@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pairfect/discover/fyp_screen.dart';
 import 'package:pairfect/likes/like_screen.dart';
 import 'package:pairfect/peopleScreen/people_screen.dart';
+import 'package:pairfect/quiz_mood/matching_screen.dart';
 
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import '../chats/chats_screen.dart';
@@ -21,8 +22,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   List<Widget> _buildScreens() {
     return [
       ProfileScreen(),
+      MatchingHomeScreen(),
       ForYouPage(),
-      PeopleScreen(),
       LikeScreen(),
       ChatsScreen(),
     ];

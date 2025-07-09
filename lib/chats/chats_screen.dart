@@ -1,8 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'package:intl/intl.dart';
 import 'package:pairfect/chats/message_screen.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
@@ -23,8 +22,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   void initState() {
     super.initState();
     initChats();
-    refreshTimer =
-        Timer.periodic(const Duration(seconds: 10), (_) => fetchChats());
+    refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) => fetchChats());
   }
 
   @override
@@ -51,10 +49,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
     final receiverQuery = QueryBuilder<ParseObject>(ParseObject('ChatRoom'))
       ..whereEqualTo('receiver', currentUser);
 
-    final query =
-        QueryBuilder.or(ParseObject('ChatRoom'), [senderQuery, receiverQuery])
-          ..orderByDescending('updatedAt')
-          ..includeObject(['sender', 'receiver']);
+    final query = QueryBuilder.or(ParseObject('ChatRoom'), [senderQuery, receiverQuery])
+      ..orderByDescending('updatedAt')
+      ..includeObject(['sender', 'receiver']);
 
     final response = await query.query();
 
@@ -105,39 +102,150 @@ class _ChatsScreenState extends State<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFDF2F8),
       appBar: AppBar(
-        title: const Text('Chats'),
+        title: const Text(
+          'My Messages',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF881337),
+            fontFamily: 'PlayfairDisplay',
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
-        elevation: 0.5,
-        foregroundColor: Colors.black,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF881337)),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+        ),
       ),
-      body: RefreshIndicator(
-        onRefresh: fetchChats,
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : chatRooms.isEmpty
-                ? const Center(child: Text("No chats yet"))
-                : ListView.separated(
-                    itemCount: chatRooms.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final chatRoom = chatRooms[index];
-                      final receiver = getReceiver(chatRoom);
-                      if (receiver == null) return const SizedBox();
-                      return ChatListTile(
-                        receiver: receiver,
-                        chatRoom: chatRoom,
-                        fetchUserLogin: fetchUserLogin,
-                        onTap: (receiverName) {
-                          Get.to(() => ChatScreen(), arguments: {
-                            'chatRoomId': chatRoom.objectId,
-                            'receiverName': receiverName,
-                          });
-                        },
-                      );
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFDF2F8),
+              Color(0xFFFBCFE8),
+            ],
+          ),
+        ),
+        child: RefreshIndicator(
+          backgroundColor: const Color(0xFFFBCFE8),
+          color: const Color(0xFF881337),
+          onRefresh: fetchChats,
+          child: isLoading
+              ? _buildLoadingState()
+              : chatRooms.isEmpty
+              ? _buildEmptyState()
+              : ListView.separated(
+            padding: const EdgeInsets.only(top: 16, bottom: 16),
+            itemCount: chatRooms.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final chatRoom = chatRooms[index];
+              final receiver = getReceiver(chatRoom);
+              if (receiver == null) return const SizedBox();
+              return ChatListTile(
+                receiver: receiver,
+                chatRoom: chatRoom,
+                fetchUserLogin: fetchUserLogin,
+                onTap: (receiverName) {
+                  Get.to(
+                        () => ChatScreen(),
+                    arguments: {
+                      'chatRoomId': chatRoom.objectId,
+                      'receiverName': receiverName,
                     },
-                  ),
+                    transition: Transition.rightToLeftWithFade,
+                    duration: const Duration(milliseconds: 300),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(
+            color: Color(0xFF881337),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Loading your conversations",
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.favorite_border,
+            size: 80,
+            color: Colors.pink.shade200,
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "No conversations yet",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF881337),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              "Start a new romantic connection by messaging someone special",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              // Add your navigation to find matches here
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFB7185),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text(
+              "Find Matches",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -208,43 +316,230 @@ class _ChatListTileState extends State<ChatListTile> {
     final receiverName =
         userLogin?.get<String>('name') ?? widget.receiver.username ?? 'Unknown';
     final ParseFile? imageFile = userLogin?.get<ParseFile>('imageProfile');
-    final imageUrl = imageFile?.url ?? 'https://i.pravatar.cc/150';
+    final imageUrl = imageFile?.url ?? 'https://i.pravatar.cc/150?img=3';
     final lastMessage = widget.chatRoom.get<String>('lastMessage') ?? '';
     final updatedAt = widget.chatRoom.updatedAt != null
-        ? "${widget.chatRoom.updatedAt!.toLocal()}".substring(0, 16)
+        ? _formatDateTime(widget.chatRoom.updatedAt!)
         : '';
 
     if (_loading && userLogin == null) {
-      return ListTile(
-        title: Text(widget.receiver.username ?? 'Loading...'),
-        leading: const CircleAvatar(
-          radius: 28,
-          backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
-        ),
-      );
+      return _buildSkeletonLoader();
     }
 
     if (_error && userLogin == null) {
-      return ListTile(
-        title: Text(widget.receiver.username ?? 'Error'),
-        leading: const CircleAvatar(
-          radius: 28,
-          backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
-        ),
-      );
+      return _buildErrorTile();
     }
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundImage: NetworkImage(imageUrl),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => widget.onTap(receiverName),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.pink.shade100,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFF9A8D4),
+                    width: 2,
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 28,
+                  backgroundImage: NetworkImage(imageUrl),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      receiverName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Color(0xFF881337),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      lastMessage.isNotEmpty
+                          ? lastMessage
+                          : 'Start your conversation...',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: lastMessage.isNotEmpty
+                            ? Colors.grey.shade600
+                            : Colors.grey.shade400,
+                        fontStyle: lastMessage.isEmpty
+                            ? FontStyle.italic
+                            : FontStyle.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    updatedAt,
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (widget.chatRoom.get<int>('unreadCount') != null &&
+                      widget.chatRoom.get<int>('unreadCount')! > 0)
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFB7185),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        widget.chatRoom.get<int>('unreadCount').toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      title: Text(receiverName,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: Text(updatedAt, style: const TextStyle(color: Colors.grey)),
-      onTap: () => widget.onTap(receiverName),
+    );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateToCheck = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    if (dateToCheck == today) {
+      return 'Today, ${DateFormat('h:mm a').format(dateTime)}';
+    } else if (dateToCheck == yesterday) {
+      return 'Yesterday, ${DateFormat('h:mm a').format(dateTime)}';
+    } else {
+      return DateFormat('MMM d, h:mm a').format(dateTime);
+    }
+  }
+
+  Widget _buildSkeletonLoader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBCFE8),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 16,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBCFE8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 12,
+                    width: 180,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBCFE8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorTile() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: InkWell(
+        onTap: _loadUserLogin,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_outline,
+                  color: Color(0xFF881337),
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'Error loading chat',
+                  style: TextStyle(
+                    color: Color(0xFF881337),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.refresh,
+                color: Color(0xFF881337),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

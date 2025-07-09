@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+
 class ChatController extends GetxController {
   final messages = <ParseObject>[].obs;
   final TextEditingController textController = TextEditingController();
@@ -23,6 +24,7 @@ class ChatController extends GetxController {
     initChat();
     messageTimer = Timer.periodic(Duration(seconds: 5), (_) => loadMessages());
   }
+
 
   @override
   void onClose() {

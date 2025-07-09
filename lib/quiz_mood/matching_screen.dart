@@ -4,6 +4,8 @@ import 'package:pairfect/quiz_mood/quiz_matching.dart';
 import 'mood_matching.dart';
 
 class MatchingHomeScreen extends StatefulWidget {
+  const MatchingHomeScreen({super.key});
+
   @override
   State<MatchingHomeScreen> createState() => _MatchingHomeScreenState();
 }

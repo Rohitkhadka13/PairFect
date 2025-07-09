@@ -51,7 +51,9 @@ dependencies:
   persistent_bottom_nav_bar: ^6.2.1
   font_awesome_flutter:
   location: ^6.0.2
-  geocoding: 
+  geocoding:
+  agora_rtc_engine: ^6.3.0
+  permission_handler: 11.3.0
 
 
 
@@ -78,6 +80,17 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  fonts:
+    - family: PlayfairDisplay
+      fonts:
+        - asset: fonts/PlayfairDisplay-Regular.ttf
+        - asset: fonts/PlayfairDisplay-Italic.ttf
+          style: italic
+        - asset: fonts/PlayfairDisplay-Bold.ttf
+          weight: 700
+        - asset: fonts/PlayfairDisplay-BoldItalic.ttf
+          weight: 700
+          style: italic
 
   # To add assets to your application, add an assets section, like this:
   assets:

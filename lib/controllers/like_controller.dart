@@ -95,4 +95,40 @@ class LikesController extends GetxController {
 
     profiles.removeAt(index);
   }
+
+  Future<void> likeBackUser(int index) async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser == null) return;
+
+      final profile = profiles[index];
+      final fromUser = profile['userPointer'] as ParseUser?;
+      if (fromUser == null) return;
+
+
+      final interactionQuery = QueryBuilder<ParseObject>(ParseObject('UserInteractions'))
+        ..whereEqualTo('toUser', currentUser)
+        ..whereEqualTo('fromUser', fromUser)
+        ..whereEqualTo('isMatch', false);
+
+      final interaction = await interactionQuery.first();
+      if (interaction == null) return;
+
+
+      interaction.set('isMatch', true);
+      await interaction.save();
+
+
+      profiles.removeAt(index);
+
+
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to like back: ${e.toString()}',
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void skipLikeBackProfile(int index) {
+    profiles.removeAt(index);
+  }
 }

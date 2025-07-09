@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../controllers/chat_controller.dart';
 
@@ -19,6 +18,12 @@ class ChatScreen extends StatelessWidget {
       appBar: AppBar(
         title: Obx(() => Text(controller.receiverName.value)),
         backgroundColor: Colors.pink,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.call),
+            onPressed: () {},
+          )
+        ],
       ),
       body: Column(
         children: [

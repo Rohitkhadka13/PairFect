@@ -9,7 +9,6 @@ class LikesYouScreen extends StatelessWidget {
   final LikesController controller = Get.put(LikesController());
   final AuthController authController = Get.put(AuthController());
 
-
   LikesYouScreen({super.key});
 
   @override
@@ -23,7 +22,8 @@ class LikesYouScreen extends StatelessWidget {
               children: const [
                 Icon(Icons.swipe, size: 80, color: Colors.grey),
                 SizedBox(height: 12),
-                Text("No likes yet! Keep swiping!", style: TextStyle(fontSize: 18)),
+                Text("No likes yet! Keep swiping!",
+                    style: TextStyle(fontSize: 18)),
               ],
             ),
           );
@@ -50,7 +50,7 @@ class LikesYouScreen extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(16)),
+                              BorderRadius.vertical(top: Radius.circular(16)),
                           child: Image.network(
                             imageUrl,
                             height: 300,
@@ -59,7 +59,8 @@ class LikesYouScreen extends StatelessWidget {
                             errorBuilder: (_, __, ___) => Container(
                               height: 300,
                               color: Colors.grey[300],
-                              child: Center(child: Icon(Icons.person, size: 100)),
+                              child:
+                                  Center(child: Icon(Icons.person, size: 100)),
                             ),
                           ),
                         ),
@@ -67,42 +68,50 @@ class LikesYouScreen extends StatelessWidget {
                           top: 12,
                           right: 12,
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.pink,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text("New", style: TextStyle(color: Colors.white)),
+                            child: Text("New",
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ),
                         Positioned(
                           bottom: 12,
                           right: 12,
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.black54,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text("Likes you", style: TextStyle(color: Colors.white)),
+                            child: Text("Likes you",
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ),
                         Positioned(
                           bottom: 28,
                           left: 0,
-                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             child: Text("$name, $age",
-                                style: TextStyle(color: Colors.white, fontSize: 24)),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 24)),
                           ),
                         ),
                         Positioned(
                           bottom: 3,
                           left: 0,
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             child: Text("10 miles away",
-                                style: TextStyle(color: Colors.white, fontSize: 18)),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 18)),
                           ),
                         ),
                       ],
@@ -123,35 +132,24 @@ class LikesYouScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: () => controller.skipProfile(index),
-                                  child: Text("Skip", style: TextStyle(color: Colors.black)),
+                                  onPressed: () =>
+                                      controller.skipProfile(index),
+                                  child: Text("Skip",
+                                      style: TextStyle(color: Colors.black)),
                                 ),
                               ),
                               SizedBox(width: 12),
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () async {
-                                    final currentUser = await ParseUser.currentUser() as ParseUser?;
-                                    final toUser = controller.profiles[index]['userPointer'] as ParseUser?;
-
-                                    final isMatch = await authController.saveInteraction(
-                                      fromUser: currentUser!,
-                                      toUser: toUser!,
-                                      interactionType: 'like',
-
-                                    );
-
-                                    controller.profiles.removeAt(index);
-
-
-                                  },
-                                  icon: Icon(Icons.favorite_border, color: Colors.white),
-                                  label: Text("Like Back", style: TextStyle(color: Colors.white)),
+                                  onPressed: ()=> controller.likeBackUser(index),
+                                  icon: Icon(Icons.favorite_border,
+                                      color: Colors.white),
+                                  label: Text("Like Back",
+                                      style: TextStyle(color: Colors.white)),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.pink,
                                   ),
                                 ),
-
                               ),
                             ],
                           )
