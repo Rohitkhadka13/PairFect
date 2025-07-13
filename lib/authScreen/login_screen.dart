@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import 'package:pairfect/authScreen/register_screen.dart';
 import 'package:pairfect/controllers/auth_controllers.dart';
 import 'package:pairfect/widgets/custom_text_field_widget.dart';
@@ -23,162 +22,182 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Center(
-          child: Form(
-            key: _formKey,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFFF9FB),
+              Color(0xFFFFF0F3),
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                const SizedBox(height: 120),
+                SizedBox(height: 80),
                 Image.asset(
                   "assets/images/logo1.png",
-                  width: 200,
+                  width: 180,
                 ),
-                const Text(
-                  "Welcome",
+                SizedBox(height: 24),
+                Text(
+                  "Welcome Back",
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF6D6875),
+                    fontFamily: 'PlayfairDisplay',
                   ),
                 ),
-                const Text(
-                  "Login now To Find Your Best Match",
+                SizedBox(height: 8),
+                Text(
+                  "Login to continue your love journey",
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color(0xFFB5838D),
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                // Email
-                SizedBox(
-                  width: MediaQuery.of(context).size.width - 36,
-                  height: 60,
-                  child: CustomTextFieldWidget(
-                    editingController: emailTextEditingController,
-                    labelText: "Email",
-                    isObscure: false,
-                    iconData: Icons.email_outlined,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Please enter your email";
-                      }
-                      if (!RegExp(
+                SizedBox(height: 40),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      CustomTextFieldWidget(
+                        editingController: emailTextEditingController,
+                        labelText: "Email Address",
+                        isObscure: false,
+                        iconData: Icons.email_outlined,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter your email";
+                          }
+                          if (!RegExp(
                               r'^[\w-]+(\.[\w-]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$')
-                          .hasMatch(value)) {
-                        return "Please enter a valid email";
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Password
-                SizedBox(
-                  width: MediaQuery.of(context).size.width - 36,
-                  height: 60,
-                  child: CustomTextFieldWidget(
-                    editingController: passwordTextEditingController,
-                    labelText: "Password",
-                    isObscure: true,
-                    iconData: Icons.lock,
-                    iconData1: Icons.visibility_off,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Please enter your password";
-                      }
-                      if (value.length < 6) {
-                        return "Password must be at least 6 characters";
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Login Button
-                Container(
-                  width: MediaQuery.of(context).size.width - 36,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(12),
-                    ),
-                  ),
-                  child: InkWell(
-                    onTap: () async {
-                      // Validate the form
-                      if (_formKey.currentState!.validate()) {
-                        String email = emailTextEditingController.text.trim();
-                        String password =
-                            passwordTextEditingController.text.trim();
-
-                        setState(() {
-                          showProgressBar = true;
-                        });
-
-                        try {
-                          await authController.signIn(
-                            email: email,
-                            password: password,
-                          );
-                        } catch (e) {
-                          rethrow;
-                        } finally {
-                          setState(() {
-                            showProgressBar = false;
-                          });
-                        }
-                      }
-                    },
-                    child: const Center(
-                      child: Text(
-                        "Login",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
+                              .hasMatch(value)) {
+                            return "Please enter a valid email";
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      CustomTextFieldWidget(
+                        editingController: passwordTextEditingController,
+                        labelText: "Password",
+                        isObscure: true,
+                        iconData: Icons.lock_outline,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter your password";
+                          }
+                          if (value.length < 6) {
+                            return "Password must be at least 6 characters";
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: Color(0xFFFD6F96),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
+                      SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              String email = emailTextEditingController.text.trim();
+                              String password = passwordTextEditingController.text.trim();
 
-                // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Don't have an Account? ",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Get.to(() => const RegisterScreen());
-                      },
-                      child: const Text(
-                        "Register Here",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                              setState(() {
+                                showProgressBar = true;
+                              });
+
+                              try {
+                                await authController.signIn(
+                                  email: email,
+                                  password: password,
+                                );
+                              } catch (e) {
+                                Get.snackbar(
+                                  "Login Failed",
+                                  e.toString(),
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Color(0xFFFD6F96),
+                                  colorText: Colors.white,
+                                );
+                              } finally {
+                                setState(() {
+                                  showProgressBar = false;
+                                });
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFFD6F96),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: showProgressBar
+                              ? SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                              : Text(
+                            "Login",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 32),
+                      TextButton(
+                        onPressed: () {
+                          Get.to(() => const RegisterScreen());
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: "Don't have an account? ",
+                            style: TextStyle(
+                              color: Color(0xFF6D6875),
+                            ),
+                            children: [
+                              TextSpan(
+                                text: "Register Here",
+                                style: TextStyle(
+                                  color: Color(0xFFFD6F96),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 15),
-
-                // Progress Bar
-                showProgressBar
-                    ? CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                      )
-                    : Container(),
-                const SizedBox(height: 30),
               ],
             ),
           ),
