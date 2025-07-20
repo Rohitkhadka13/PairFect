@@ -52,9 +52,7 @@ dependencies:
   font_awesome_flutter:
   location: ^6.0.2
   geocoding:
-  agora_rtc_engine: ^6.3.0
-  permission_handler: 11.3.0
-
+  http:
 
 
 
