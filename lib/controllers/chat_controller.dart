@@ -21,7 +21,7 @@ class ChatController extends GetxController {
   final RxString aiError = ''.obs;
   static const String _geminiApiUrl =
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-  final String _apiKey = "";
+  final String _apiKey = "AIzaSyAklAyTap5LNbPjV6wNAaORM5_ON6x9uLg";
   final int _messagesPerPage = 20;
   final RxBool _hasMoreMessages = true.obs;
 
@@ -107,7 +107,7 @@ class ChatController extends GetxController {
       final saved = await message.save();
       if (saved.success && saved.result != null) {
         final savedMessage = saved.result as ParseObject;
-        messages.add(savedMessage); // Add it manually to the list
+        messages.add(savedMessage);
         textController.clear();
         _scrollToBottom();
       }
@@ -145,7 +145,7 @@ class ChatController extends GetxController {
               "parts": [
                 {
                   "text":
-                  "Suggest 3 short (1-5 word) reply options for: '$message'. "
+                  "Suggest 3 short (1-5 word) reply  options for: '$message'. "
                       "Format as: 1) Suggestion1 2) Suggestion2 3) Suggestion3"
                 }
               ]

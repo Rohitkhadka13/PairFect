@@ -17,7 +17,7 @@ class ProfileController extends GetxController {
     super.onInit();
     fetchProfiles();
   }
-  double calculateDistanceMiles(
+  double calculateDistanceMiles(  
       double lat1, double lon1, double lat2, double lon2)
   {
     const earthRadius = 3958.8; 
